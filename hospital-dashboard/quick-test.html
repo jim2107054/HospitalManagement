@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Button Quick Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hospital Dashboard - Add Button Quick Test</h1>
+    
+    <h2>Step 1: Test Basic Functions</h2>
+    <button class="test-button" onclick="testBasicFunctions()">Test Basic Functions</button>
+    <div id="basic-results" class="result"></div>
+
+    <h2>Step 2: Test Modal</h2>
+    <button class="test-button" onclick="testModal()">Test Modal Display</button>
+    <div id="modal-results" class="result"></div>
+
+    <h2>Step 3: Test Add Patient</h2>
+    <button class="test-button" onclick="testAddPatient()">Test Add Patient Button</button>
+    <div id="patient-results" class="result"></div>
+
+    <h2>Step 4: Test Database Connection</h2>
+    <button class="test-button" onclick="testDatabase()">Test Database Connection</button>
+    <div id="database-results" class="result"></div>
+
+    <script>
+        function log(message, containerId, isError = false) {
+            const container = document.getElementById(containerId);
+            const className = isError ? 'error' : 'success';
+            container.innerHTML += `<div class="${className}">${message}</div>`;
+            console.log(message);
+        }
+
+        function testBasicFunctions() {
+            const container = document.getElementById('basic-results');
+            container.innerHTML = '';
+
+            // Test if scripts are loaded
+            log('Testing if scripts are loaded...', 'basic-results');
+            
+            if (typeof window.openCrudModal === 'function') {
+                log('✅ openCrudModal function exists', 'basic-results');
+            } else {
+                log('❌ openCrudModal function NOT found', 'basic-results', true);
+            }
+
+            if (window.dashboard) {
+                log('✅ dashboard object exists', 'basic-results');
+            } else {
+                log('❌ dashboard object NOT found', 'basic-results', true);
+            }
+
+            if (window.crudManager) {
+                log('✅ crudManager object exists', 'basic-results');
+            } else {
+                log('❌ crudManager object NOT found', 'basic-results', true);
+            }
+        }
+
+        function testModal() {
+            const container = document.getElementById('modal-results');
+            container.innerHTML = '';
+
+            log('Testing modal elements...', 'modal-results');
+
+            const modal = document.getElementById('crud-modal');
+            if (modal) {
+                log('✅ crud-modal element found', 'modal-results');
+            } else {
+                log('❌ crud-modal element NOT found', 'modal-results', true);
+            }
+
+            const modalTitle = document.getElementById('modal-title');
+            if (modalTitle) {
+                log('✅ modal-title element found', 'modal-results');
+            } else {
+                log('❌ modal-title element NOT found', 'modal-results', true);
+            }
+
+            const modalBody = document.getElementById('modal-body');
+            if (modalBody) {
+                log('✅ modal-body element found', 'modal-results');
+            } else {
+                log('❌ modal-body element NOT found', 'modal-results', true);
+            }
+        }
+
+        function testAddPatient() {
+            const container = document.getElementById('patient-results');
+            container.innerHTML = '';
+
+            log('Testing Add Patient function...', 'patient-results');
+
+            try {
+                if (typeof openCrudModal === 'function') {
+                    log('Calling openCrudModal("patients", "create")...', 'patient-results');
+                    openCrudModal('patients', 'create');
+                    
+                    setTimeout(() => {
+                        const modal = document.getElementById('crud-modal');
+                        if (modal && modal.style.display === 'block') {
+                            log('✅ Modal opened successfully!', 'patient-results');
+                            log('Click outside the modal or press Cancel to close it', 'patient-results');
+                        } else {
+                            log('❌ Modal did not open', 'patient-results', true);
+                        }
+                    }, 500);
+                } else {
+                    log('❌ openCrudModal function not available', 'patient-results', true);
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'patient-results', true);
+            }
+        }
+
+        async function testDatabase() {
+            const container = document.getElementById('database-results');
+            container.innerHTML = '';
+
+            log('Testing database connection...', 'database-results');
+
+            try {
+                const response = await fetch('php/patients.php');
+                const data = await response.json();
+                
+                if (data.success) {
+                    log('✅ Database connection working', 'database-results');
+                    log(`Found ${data.patients ? data.patients.length : 0} patients`, 'database-results');
+                } else {
+                    log(`⚠️ Database returned error: ${data.error || 'Unknown error'}`, 'database-results', true);
+                }
+            } catch (error) {
+                log(`❌ Database connection failed: ${error.message}`, 'database-results', true);
+                log('Make sure you are running this on a web server (not file://)', 'database-results', true);
+            }
+        }
+
+        // Auto-test on page load
+        window.onload = function() {
+            setTimeout(() => {
+                testBasicFunctions();
+                testModal();
+            }, 1000);
+        };
+    </script>
+
+    <!-- Load the same scripts as main dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/crud.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- Modal HTML (same as main dashboard) -->
+    <div id="crud-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="background: white; margin: 10% auto; width: 80%; max-width: 600px; border-radius: 8px; overflow: hidden;">
+            <div style="padding: 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="modal-title">Form</h3>
+                <span onclick="document.getElementById('crud-modal').style.display='none'" style="cursor: pointer; font-size: 24px;">&times;</span>
+            </div>
+            <div id="modal-body" style="padding: 20px; max-height: 400px; overflow-y: auto;">
+                <!-- Form content will be inserted here -->
+            </div>
+            <div class="modal-footer" style="padding: 20px; border-top: 1px solid #ddd; text-align: right;">
+                <!-- Buttons will be added dynamically -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -6,7 +6,6 @@
     <title>Hospital Management Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -293,7 +292,7 @@
                     <div class="page-header">
                         <h2>Departments Management</h2>
                         <div class="header-actions">
-                            <button class="btn btn-primary" onclick="openCrudModal('departments', 'create')">
+                            <button class="btn btn-primary" onclick="dashboard.openCrudModal('departments', 'create')">
                                 <i class="fas fa-plus"></i> Add Department
                             </button>
                             <button class="btn btn-outline" onclick="exportData('departments')">
@@ -673,8 +672,10 @@
         <div class="spinner"></div>
     </div>
 
-    <script src="js/main.js"></script>
-    <script src="js/crud.js"></script>
+    <!-- Scripts in correct loading order -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/charts.js"></script>
+    <script src="js/crud.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

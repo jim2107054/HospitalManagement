@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Dashboard Test - JavaScript Console Check</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hospital Dashboard - JavaScript Components Test</h1>
+    
+    <div class="test-section info">
+        <h3>Instructions</h3>
+        <p>This page tests all JavaScript components. Click the buttons below to test different functionality:</p>
+        <ul>
+            <li>Open your browser's Developer Console (F12) to see detailed logs</li>
+            <li>Test each component individually</li>
+            <li>Check if any errors appear in the console</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>1. Component Loading Test</h3>
+        <button onclick="testComponentLoading()">Test Component Loading</button>
+        <div id="loading-test-results" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. CRUD Modal Test</h3>
+        <button onclick="testCrudModal()">Test Add Patient Modal</button>
+        <button onclick="testCrudModal('departments')">Test Add Department Modal</button>
+        <button onclick="testCrudModal('doctors')">Test Add Doctor Modal</button>
+        <div id="crud-test-results" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2.5. Action Buttons Test</h3>
+        <button onclick="testActionButtons()">Test View/Edit/Delete Functions</button>
+        <div id="action-test-results" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. API Endpoints Test</h3>
+        <button onclick="testApiEndpoints()">Test All API Endpoints</button>
+        <div id="api-test-results" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. Chart System Test</h3>
+        <button onclick="testCharts()">Test Chart Components</button>
+        <div id="chart-test-results" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>5. Add Button Test</h3>
+        <button onclick="testAddButtons()">Test Add Button Functions</button>
+        <button onclick="testSpecificAddButton('patients')">Test Add Patient</button>
+        <button onclick="testSpecificAddButton('departments')">Test Add Department</button>
+        <button onclick="testSpecificAddButton('doctors')">Test Add Doctor</button>
+        <div id="add-test-results" class="log"></div>
+    </div>
+
+    <script>
+        function log(message, containerId = 'loading-test-results') {
+            const container = document.getElementById(containerId);
+            const timestamp = new Date().toLocaleTimeString();
+            container.textContent += `[${timestamp}] ${message}\n`;
+            console.log(`[TEST] ${message}`);
+        }
+
+        function testComponentLoading() {
+            const container = document.getElementById('loading-test-results');
+            container.textContent = '';
+            
+            log('=== COMPONENT LOADING TEST ===', 'loading-test-results');
+            
+            // Test if main components are loaded
+            const tests = [
+                { name: 'window.dashboard', object: window.dashboard },
+                { name: 'window.crudManager', object: window.crudManager },
+                { name: 'window.chartManager', object: window.chartManager },
+                { name: 'Chart.js', object: window.Chart },
+                { name: 'openCrudModal function', object: window.openCrudModal },
+                { name: 'closeCrudModal function', object: window.closeCrudModal }
+            ];
+
+            tests.forEach(test => {
+                if (test.object) {
+                    log(`✅ ${test.name} - LOADED`, 'loading-test-results');
+                } else {
+                    log(`❌ ${test.name} - NOT FOUND`, 'loading-test-results');
+                }
+            });
+
+            log('=== TEST COMPLETE ===', 'loading-test-results');
+        }
+
+        function testCrudModal(type = 'patients') {
+            const container = document.getElementById('crud-test-results');
+            container.textContent = '';
+            
+            log(`=== CRUD MODAL TEST (${type.toUpperCase()}) ===`, 'crud-test-results');
+            
+            try {
+                if (window.openCrudModal) {
+                    log(`Attempting to open ${type} modal...`, 'crud-test-results');
+                    window.openCrudModal(type, 'create');
+                    log(`✅ Modal function called successfully`, 'crud-test-results');
+                    
+                    // Check if modal is visible
+                    setTimeout(() => {
+                        const modal = document.getElementById('crud-modal');
+                        if (modal && modal.style.display === 'block') {
+                            log(`✅ Modal is visible`, 'crud-test-results');
+                        } else {
+                            log(`❌ Modal is not visible`, 'crud-test-results');
+                        }
+                    }, 100);
+                } else {
+                    log(`❌ openCrudModal function not found`, 'crud-test-results');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'crud-test-results');
+            }
+        }
+
+        async function testApiEndpoints() {
+            const container = document.getElementById('api-test-results');
+            container.textContent = '';
+            
+            log('=== API ENDPOINTS TEST ===', 'api-test-results');
+            
+            const endpoints = [
+                'php/patients.php',
+                'php/departments.php', 
+                'php/doctors.php',
+                'php/appointments.php',
+                'php/medical-reports.php',
+                'php/overview_new.php'
+            ];
+
+            for (const endpoint of endpoints) {
+                try {
+                    log(`Testing ${endpoint}...`, 'api-test-results');
+                    const response = await fetch(endpoint);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        log(`✅ ${endpoint} - SUCCESS`, 'api-test-results');
+                    } else {
+                        log(`⚠️ ${endpoint} - RETURNED ERROR: ${data.error || 'Unknown error'}`, 'api-test-results');
+                    }
+                } catch (error) {
+                    log(`❌ ${endpoint} - FETCH ERROR: ${error.message}`, 'api-test-results');
+                }
+            }
+            
+            log('=== API TEST COMPLETE ===', 'api-test-results');
+        }
+
+        function testCharts() {
+            const container = document.getElementById('chart-test-results');
+            container.textContent = '';
+            
+            log('=== CHART SYSTEM TEST ===', 'chart-test-results');
+            
+            try {
+                if (window.Chart) {
+                    log('✅ Chart.js library loaded', 'chart-test-results');
+                } else {
+                    log('❌ Chart.js library not found', 'chart-test-results');
+                }
+
+                if (window.chartManager) {
+                    log('✅ ChartManager instance found', 'chart-test-results');
+                    
+                    // Test chart instances
+                    const charts = window.chartManager.charts;
+                    const chartNames = Object.keys(charts);
+                    
+                    log(`Found ${chartNames.length} chart instances:`, 'chart-test-results');
+                    chartNames.forEach(name => {
+                        log(`  - ${name}`, 'chart-test-results');
+                    });
+                    
+                    if (chartNames.length > 0) {
+                        log('✅ Charts initialized successfully', 'chart-test-results');
+                    } else {
+                        log('⚠️ No chart instances found', 'chart-test-results');
+                    }
+                } else {
+                    log('❌ ChartManager not found', 'chart-test-results');
+                }
+            } catch (error) {
+                log(`❌ Chart test error: ${error.message}`, 'chart-test-results');
+            }
+            
+            log('=== CHART TEST COMPLETE ===', 'chart-test-results');
+        }
+
+        function testActionButtons() {
+            const container = document.getElementById('action-test-results');
+            container.textContent = '';
+            
+            log('=== ACTION BUTTONS TEST ===', 'action-test-results');
+            
+            // Test if action functions are available
+            const actionFunctions = [
+                { name: 'viewRecord', func: window.viewRecord },
+                { name: 'editRecord', func: window.editRecord },
+                { name: 'deleteRecord', func: window.deleteRecord }
+            ];
+
+            actionFunctions.forEach(test => {
+                if (typeof test.func === 'function') {
+                    log(`✅ ${test.name} function - AVAILABLE`, 'action-test-results');
+                } else {
+                    log(`❌ ${test.name} function - NOT FOUND`, 'action-test-results');
+                }
+            });
+
+            // Test view function (safe to call)
+            try {
+                log('Testing viewRecord function with ID 1...', 'action-test-results');
+                if (window.viewRecord) {
+                    window.viewRecord('patients', 1);
+                    log('✅ viewRecord function called successfully', 'action-test-results');
+                }
+            } catch (error) {
+                log(`❌ viewRecord error: ${error.message}`, 'action-test-results');
+            }
+
+            log('=== ACTION BUTTONS TEST COMPLETE ===', 'action-test-results');
+        }
+
+        function testAddButtons() {
+            const container = document.getElementById('add-test-results');
+            container.textContent = '';
+            
+            log('=== ADD BUTTONS TEST ===', 'add-test-results');
+            
+            // Test if openCrudModal function is available
+            if (window.openCrudModal) {
+                log('✅ openCrudModal function - AVAILABLE', 'add-test-results');
+            } else {
+                log('❌ openCrudModal function - NOT FOUND', 'add-test-results');
+            }
+
+            // Test if dashboard is available
+            if (window.dashboard) {
+                log('✅ window.dashboard - AVAILABLE', 'add-test-results');
+            } else {
+                log('❌ window.dashboard - NOT FOUND', 'add-test-results');
+            }
+
+            // Test if crudManager is available
+            if (window.crudManager) {
+                log('✅ window.crudManager - AVAILABLE', 'add-test-results');
+            } else {
+                log('❌ window.crudManager - NOT FOUND', 'add-test-results');
+            }
+
+            log('=== ADD BUTTONS TEST COMPLETE ===', 'add-test-results');
+        }
+
+        function testSpecificAddButton(type) {
+            const container = document.getElementById('add-test-results');
+            
+            log(`=== TESTING ADD ${type.toUpperCase()} BUTTON ===`, 'add-test-results');
+            
+            try {
+                log(`Attempting to call openCrudModal('${type}', 'create')...`, 'add-test-results');
+                
+                // Test the function exists
+                if (typeof openCrudModal !== 'function') {
+                    log(`❌ openCrudModal is not a function: ${typeof openCrudModal}`, 'add-test-results');
+                    return;
+                }
+                
+                openCrudModal(type, 'create');
+                log(`✅ Function called successfully`, 'add-test-results');
+                
+                // Check if modal is visible after a short delay
+                setTimeout(() => {
+                    const modal = document.getElementById('crud-modal');
+                    if (modal) {
+                        if (modal.style.display === 'block') {
+                            log(`✅ Modal is visible for ${type}`, 'add-test-results');
+                            // Check modal content
+                            const modalBody = document.getElementById('modal-body');
+                            if (modalBody && modalBody.innerHTML.includes('form')) {
+                                log(`✅ Form content loaded in modal`, 'add-test-results');
+                            } else {
+                                log(`❌ No form content in modal body`, 'add-test-results');
+                                log(`Modal body content: ${modalBody ? modalBody.innerHTML : 'null'}`, 'add-test-results');
+                            }
+                        } else {
+                            log(`❌ Modal is not visible for ${type} (display: ${modal.style.display})`, 'add-test-results');
+                        }
+                    } else {
+                        log(`❌ Modal element not found`, 'add-test-results');
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                log(`❌ Error testing ${type}: ${error.message}`, 'add-test-results');
+                console.error('Add button test error:', error);
+            }
+        }
+
+        // Auto-run component loading test when page loads
+        window.onload = function() {
+            setTimeout(() => {
+                testComponentLoading();
+            }, 1000);
+        };
+    </script>
+
+    <!-- Include the same scripts as main dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/crud.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- Modal HTML (same as main dashboard) -->
+    <div id="crud-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Form</h3>
+                <span class="close-modal" onclick="closeCrudModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Form content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <!-- Buttons will be added dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+</body>
+</html>

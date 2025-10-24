@@ -22,6 +22,7 @@ class CrudManager {
 
         if (!modal || !modalTitle || !modalBody) {
             console.error('Modal elements not found in DOM');
+            alert('Modal elements not found. Please refresh the page.');
             return;
         }
 
@@ -34,8 +35,13 @@ class CrudManager {
         modalTitle.textContent = titles[action] || 'Form';
 
         try {
+            console.log('Generating form for:', type, action);
             // Generate form based on type and action
             modalBody.innerHTML = await this.generateForm(type, action, id);
+            console.log('Form generated successfully');
+
+            // Setup modal footer based on action
+            this.setupModalFooter(modal, action);
 
             // Show modal
             modal.style.display = 'block';
@@ -47,7 +53,7 @@ class CrudManager {
             }
         } catch (error) {
             console.error('Error opening modal:', error);
-            modalBody.innerHTML = '<p class="error">Error loading form. Please try again.</p>';
+            modalBody.innerHTML = `<p class="error">Error loading form: ${error.message}. Please try again.</p>`;
             modal.style.display = 'block';
         }
     }
@@ -55,13 +61,29 @@ class CrudManager {
     async generateForm(type, action, id) {
         const forms = {
             'patients': this.generatePatientsForm(),
-            'departments': this.generateDepartmentsForm(),
+            'departments': await this.generateDepartmentsForm(),
             'doctors': await this.generateDoctorsForm(),
             'appointments': await this.generateAppointmentsForm(),
             'medical-reports': await this.generateMedicalReportsForm()
         };
 
         return forms[type] || '<p>Form not available</p>';
+    }
+
+    setupModalFooter(modal, action) {
+        const modalFooter = modal.querySelector('.modal-footer');
+        if (!modalFooter) return;
+
+        if (action === 'view') {
+            modalFooter.innerHTML = `
+                <button class="btn btn-secondary" onclick="crudManager.closeModal()">Close</button>
+            `;
+        } else {
+            modalFooter.innerHTML = `
+                <button class="btn btn-secondary" onclick="crudManager.closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="crudManager.submitForm()">${action === 'create' ? 'Create' : 'Update'}</button>
+            `;
+        }
     }
 
     generatePatientsForm() {
@@ -139,7 +161,9 @@ class CrudManager {
         `;
     }
 
-    generateDepartmentsForm() {
+    async generateDepartmentsForm() {
+        const doctors = await this.loadDoctors();
+        
         return `
             <form id="crud-form">
                 <div class="form-group">
@@ -167,7 +191,7 @@ class CrudManager {
                     <label for="head_doctor_id">Head Doctor</label>
                     <select id="head_doctor_id" name="head_doctor_id" class="form-control">
                         <option value="">Select Head Doctor</option>
-                        <!-- Options will be loaded dynamically -->
+                        ${doctors.map(doctor => `<option value="${doctor.id}">${doctor.name}</option>`).join('')}
                     </select>
                 </div>
             </form>
@@ -413,7 +437,7 @@ class CrudManager {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            dashboard.showLoading();
+            window.dashboard.showLoading();
             
             const url = `php/${this.currentType}.php`;
             const method = 'POST';
@@ -435,7 +459,7 @@ class CrudManager {
 
             if (result.success) {
                 this.closeModal();
-                dashboard.loadDataTable(this.currentType);
+                window.dashboard.loadDataTable(this.currentType);
                 this.showSuccessMessage(result.message || 'Operation completed successfully');
             } else {
                 this.showErrorMessage(result.message || 'Operation failed');
@@ -444,7 +468,7 @@ class CrudManager {
             console.error('Error submitting form:', error);
             this.showErrorMessage('An error occurred. Please try again.');
         } finally {
-            dashboard.hideLoading();
+            window.dashboard.hideLoading();
         }
     }
 
@@ -468,7 +492,7 @@ class CrudManager {
         }
 
         try {
-            dashboard.showLoading();
+            window.dashboard.showLoading();
             
             const response = await fetch(`php/${type}.php`, {
                 method: 'POST',
@@ -484,7 +508,7 @@ class CrudManager {
             const result = await response.json();
 
             if (result.success) {
-                dashboard.loadDataTable(type);
+                window.dashboard.loadDataTable(type);
                 this.showSuccessMessage('Record deleted successfully');
             } else {
                 this.showErrorMessage(result.message || 'Failed to delete record');
@@ -493,7 +517,7 @@ class CrudManager {
             console.error('Error deleting record:', error);
             this.showErrorMessage('An error occurred while deleting the record');
         } finally {
-            dashboard.hideLoading();
+            window.dashboard.hideLoading();
         }
     }
 
@@ -657,7 +681,8 @@ class CrudManager {
 // Initialize CRUD manager
 console.log('crud.js: Creating CrudManager instance');
 const crudManager = new CrudManager();
-console.log('crud.js: CrudManager instance created:', crudManager);
+window.crudManager = crudManager;
+console.log('crud.js: CrudManager instance created and assigned to window.crudManager:', crudManager);
 
 // Verification function
 function verifyCrudSetup() {

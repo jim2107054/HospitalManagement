@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Status Check</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        .status-box { background: #f8f9fa; border: 1px solid #dee2e6; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .warning { background: #fff3cd; border-color: #ffeaa7; color: #856404; }
+        .test-btn { background: #007bff; color: white; border: none; padding: 12px 24px; margin: 10px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .test-btn:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .step { margin: 20px 0; padding: 15px; border-left: 4px solid #007bff; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>🏥 Hospital Dashboard Status Check</h1>
+    
+    <div class="step">
+        <h3>📋 Checklist - Follow these steps:</h3>
+        <ol>
+            <li><strong>First:</strong> Make sure you're visiting <code>http://localhost:8000</code> (not file://)</li>
+            <li><strong>Second:</strong> Click "Run Full Diagnostic" below</li>
+            <li><strong>Third:</strong> Follow the specific fix instructions</li>
+        </ol>
+    </div>
+
+    <button class="test-btn" onclick="runFullDiagnostic()">🔍 Run Full Diagnostic</button>
+    <button class="test-btn" onclick="testAddPatientButton()">👤 Test Add Patient</button>
+    <button class="test-btn" onclick="clearResults()">🧹 Clear Results</button>
+
+    <div id="results"></div>
+
+    <script>
+        let results = document.getElementById('results');
+
+        function addResult(title, message, type = 'status') {
+            const div = document.createElement('div');
+            div.className = `status-box ${type}`;
+            div.innerHTML = `<h4>${title}</h4><div>${message}</div>`;
+            results.appendChild(div);
+        }
+
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        async function runFullDiagnostic() {
+            clearResults();
+            addResult('🔍 Starting Full Diagnostic...', 'Running comprehensive tests to identify issues', 'status');
+
+            // Test 1: Check URL
+            checkURL();
+            
+            // Test 2: Check script loading
+            await new Promise(resolve => setTimeout(resolve, 500));
+            checkScripts();
+            
+            // Test 3: Check components
+            await new Promise(resolve => setTimeout(resolve, 500));
+            checkComponents();
+            
+            // Test 4: Check backend
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await checkBackend();
+            
+            // Test 5: Check modal
+            await new Promise(resolve => setTimeout(resolve, 500));
+            checkModal();
+
+            // Final recommendation
+            await new Promise(resolve => setTimeout(resolve, 500));
+            provideFinalRecommendation();
+        }
+
+        function checkURL() {
+            const currentURL = window.location.href;
+            if (currentURL.startsWith('file://')) {
+                addResult('❌ URL Problem Detected', 
+                    `<strong>CRITICAL ISSUE:</strong> You're opening the file directly!<br>
+                    <strong>Current URL:</strong> ${currentURL}<br>
+                    <strong>Required:</strong> http://localhost:8000<br>
+                    <strong>Fix:</strong> Start web server with: <code>php -S localhost:8000</code>`, 'error');
+            } else if (currentURL.includes('localhost')) {
+                addResult('✅ URL Correct', `Good! Using web server: ${currentURL}`, 'success');
+            } else {
+                addResult('⚠️ URL Warning', `Unusual URL detected: ${currentURL}`, 'warning');
+            }
+        }
+
+        function checkScripts() {
+            let scriptIssues = [];
+            let scriptSuccess = [];
+
+            // Check Chart.js
+            if (typeof Chart !== 'undefined') {
+                scriptSuccess.push('Chart.js loaded successfully');
+            } else {
+                scriptIssues.push('Chart.js not loaded');
+            }
+
+            // Check our components
+            const components = [
+                { name: 'window.dashboard', obj: window.dashboard },
+                { name: 'window.crudManager', obj: window.crudManager },
+                { name: 'openCrudModal function', obj: window.openCrudModal }
+            ];
+
+            components.forEach(comp => {
+                if (comp.obj) {
+                    scriptSuccess.push(`${comp.name} loaded`);
+                } else {
+                    scriptIssues.push(`${comp.name} NOT loaded`);
+                }
+            });
+
+            if (scriptIssues.length === 0) {
+                addResult('✅ All Scripts Loaded', scriptSuccess.join('<br>'), 'success');
+            } else {
+                addResult('❌ Script Loading Issues', 
+                    `<strong>Problems:</strong><br>${scriptIssues.join('<br>')}<br><br>
+                    <strong>Working:</strong><br>${scriptSuccess.join('<br>')}<br><br>
+                    <strong>Fix:</strong> Refresh the page and try again. Check browser console (F12) for errors.`, 'error');
+            }
+        }
+
+        function checkComponents() {
+            const checks = [];
+            
+            if (window.dashboard) {
+                if (typeof window.dashboard.openCrudModal === 'function') {
+                    checks.push('✅ Dashboard.openCrudModal method exists');
+                } else {
+                    checks.push('❌ Dashboard.openCrudModal method missing');
+                }
+            } else {
+                checks.push('❌ Dashboard object not found');
+            }
+
+            if (window.crudManager) {
+                if (typeof window.crudManager.openModal === 'function') {
+                    checks.push('✅ CrudManager.openModal method exists');
+                } else {
+                    checks.push('❌ CrudManager.openModal method missing');
+                }
+            } else {
+                checks.push('❌ CrudManager object not found');
+            }
+
+            const hasErrors = checks.some(check => check.includes('❌'));
+            const type = hasErrors ? 'error' : 'success';
+            const title = hasErrors ? '❌ Component Issues Found' : '✅ All Components Working';
+            
+            addResult(title, checks.join('<br>'), type);
+        }
+
+        async function checkBackend() {
+            try {
+                // Test basic PHP
+                const testResponse = await fetch('php/test.php');
+                const testData = await testResponse.json();
+                
+                if (testData.success) {
+                    addResult('✅ Backend Working', 
+                        `PHP Version: ${testData.php_version}<br>Timestamp: ${testData.timestamp}`, 'success');
+                } else {
+                    addResult('❌ Backend Error', 'PHP test failed', 'error');
+                }
+
+                // Test patients API
+                const patientsResponse = await fetch('php/patients.php');
+                const patientsData = await patientsResponse.json();
+                
+                if (patientsData.success) {
+                    const patientCount = patientsData.patients ? patientsData.patients.length : 0;
+                    addResult('✅ Database Connection', 
+                        `Patients API working. Found ${patientCount} patients.<br>
+                        Database status: ${patientsData.database_status || 'connected'}`, 'success');
+                } else {
+                    addResult('⚠️ Database Issue', 
+                        `API returned error: ${patientsData.error || 'Unknown error'}<br>
+                        This might be normal if database is not set up yet.`, 'warning');
+                }
+
+            } catch (error) {
+                addResult('❌ Backend Connection Failed', 
+                    `Could not connect to backend: ${error.message}<br>
+                    Make sure PHP server is running: <code>php -S localhost:8000</code>`, 'error');
+            }
+        }
+
+        function checkModal() {
+            const modal = document.getElementById('crud-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+
+            const checks = [];
+            
+            if (modal) {
+                checks.push('✅ Modal element found');
+            } else {
+                checks.push('❌ Modal element missing');
+            }
+
+            if (modalTitle) {
+                checks.push('✅ Modal title element found');
+            } else {
+                checks.push('❌ Modal title element missing');
+            }
+
+            if (modalBody) {
+                checks.push('✅ Modal body element found');
+            } else {
+                checks.push('❌ Modal body element missing');
+            }
+
+            const hasErrors = checks.some(check => check.includes('❌'));
+            const type = hasErrors ? 'error' : 'success';
+            const title = hasErrors ? '❌ Modal Structure Issues' : '✅ Modal Structure OK';
+            
+            addResult(title, checks.join('<br>'), type);
+        }
+
+        async function testAddPatientButton() {
+            addResult('🧪 Testing Add Patient Button...', 'Attempting to open Add Patient modal', 'status');
+
+            try {
+                if (typeof openCrudModal === 'function') {
+                    openCrudModal('patients', 'create');
+                    
+                    setTimeout(() => {
+                        const modal = document.getElementById('crud-modal');
+                        if (modal && modal.style.display === 'block') {
+                            addResult('✅ Add Patient Button Works!', 
+                                'Modal opened successfully. You can close it by clicking outside or Cancel button.', 'success');
+                        } else {
+                            addResult('❌ Add Patient Button Failed', 
+                                'Function called but modal did not appear. Check console for errors.', 'error');
+                        }
+                    }, 1000);
+                } else {
+                    addResult('❌ Add Patient Function Missing', 
+                        'openCrudModal function not found. Scripts not loaded properly.', 'error');
+                }
+            } catch (error) {
+                addResult('❌ Add Patient Error', `Error occurred: ${error.message}`, 'error');
+            }
+        }
+
+        function provideFinalRecommendation() {
+            const errorBoxes = document.querySelectorAll('.status-box.error');
+            const warningBoxes = document.querySelectorAll('.status-box.warning');
+
+            if (errorBoxes.length === 0 && warningBoxes.length === 0) {
+                addResult('🎉 All Tests Passed!', 
+                    `Everything looks good! The add buttons should work now.<br>
+                    Try clicking "Test Add Patient" button above.`, 'success');
+            } else if (errorBoxes.length > 0) {
+                addResult('🔧 Fix Required', 
+                    `Found ${errorBoxes.length} critical issue(s). Fix the errors above and refresh the page.`, 'error');
+            } else {
+                addResult('⚠️ Minor Issues', 
+                    `Found ${warningBoxes.length} warning(s). The dashboard might work but could have issues.`, 'warning');
+            }
+        }
+
+        // Auto-run diagnostic after page loads
+        window.onload = function() {
+            setTimeout(() => {
+                runFullDiagnostic();
+            }, 1000);
+        };
+    </script>
+
+    <!-- Load dashboard scripts for testing -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/crud.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- Include modal for testing -->
+    <div id="crud-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="background: white; margin: 5% auto; width: 80%; max-width: 600px; border-radius: 8px; overflow: hidden;">
+            <div style="padding: 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="modal-title">Test Modal</h3>
+                <span onclick="document.getElementById('crud-modal').style.display='none'" style="cursor: pointer; font-size: 24px;">&times;</span>
+            </div>
+            <div id="modal-body" style="padding: 20px;">
+                Modal content will appear here
+            </div>
+            <div class="modal-footer" style="padding: 20px; text-align: right;">
+                <button onclick="document.getElementById('crud-modal').style.display='none'" style="padding: 8px 16px; margin-left: 10px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

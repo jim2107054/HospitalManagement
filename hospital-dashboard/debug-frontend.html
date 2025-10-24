@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-btn { background: #007bff; color: white; border: none; padding: 10px 20px; margin: 10px; border-radius: 5px; cursor: pointer; }
+        .result { background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; margin: 15px 0; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Frontend Debug Test</h1>
+    
+    <button class="test-btn" onclick="testScripts()">1. Test Script Loading</button>
+    <button class="test-btn" onclick="testComponents()">2. Test Components</button>
+    <button class="test-btn" onclick="testAddButton()">3. Test Add Button</button>
+    <button class="test-btn" onclick="testBackend()">4. Test Backend</button>
+    
+    <div id="results" class="result"></div>
+
+    <script>
+        function log(message, isError = false) {
+            const results = document.getElementById('results');
+            const className = isError ? 'error' : 'success';
+            results.innerHTML += `<div class="${className}">[${new Date().toLocaleTimeString()}] ${message}</div>`;
+            console.log(message);
+        }
+
+        function testScripts() {
+            document.getElementById('results').innerHTML = '';
+            log('=== TESTING SCRIPT LOADING ===');
+            
+            // Test if Chart.js is loaded
+            if (typeof Chart !== 'undefined') {
+                log('✅ Chart.js loaded successfully');
+            } else {
+                log('❌ Chart.js NOT loaded', true);
+            }
+
+            // Test if our scripts are loaded
+            const scriptsToCheck = ['main.js', 'crud.js', 'charts.js'];
+            scriptsToCheck.forEach(script => {
+                const scriptElement = document.querySelector(`script[src*="${script}"]`);
+                if (scriptElement) {
+                    log(`✅ ${script} script tag found`);
+                } else {
+                    log(`❌ ${script} script tag NOT found`, true);
+                }
+            });
+        }
+
+        function testComponents() {
+            log('=== TESTING COMPONENTS ===');
+            
+            // Test global objects
+            const components = [
+                { name: 'window.dashboard', obj: window.dashboard },
+                { name: 'window.crudManager', obj: window.crudManager },
+                { name: 'window.chartManager', obj: window.chartManager },
+                { name: 'openCrudModal', obj: window.openCrudModal }
+            ];
+
+            components.forEach(comp => {
+                if (comp.obj) {
+                    log(`✅ ${comp.name} available`);
+                } else {
+                    log(`❌ ${comp.name} NOT available`, true);
+                }
+            });
+        }
+
+        function testAddButton() {
+            log('=== TESTING ADD BUTTON ===');
+            
+            try {
+                if (typeof openCrudModal === 'function') {
+                    log('Calling openCrudModal("patients", "create")...');
+                    openCrudModal('patients', 'create');
+                    
+                    setTimeout(() => {
+                        const modal = document.getElementById('crud-modal');
+                        if (modal && modal.style.display === 'block') {
+                            log('✅ Modal opened successfully!');
+                        } else {
+                            log('❌ Modal did not open', true);
+                        }
+                    }, 1000);
+                } else {
+                    log('❌ openCrudModal function not found', true);
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function testBackend() {
+            log('=== TESTING BACKEND ===');
+            
+            try {
+                // Test basic PHP
+                const testResponse = await fetch('php/test.php');
+                const testData = await testResponse.json();
+                if (testData.success) {
+                    log('✅ PHP backend working');
+                } else {
+                    log('❌ PHP backend error', true);
+                }
+
+                // Test patients endpoint
+                const patientsResponse = await fetch('php/patients.php');
+                const patientsData = await patientsResponse.json();
+                if (patientsData.success) {
+                    log('✅ Patients API working');
+                } else {
+                    log(`⚠️ Patients API issue: ${patientsData.error || 'Unknown error'}`, true);
+                }
+            } catch (error) {
+                log(`❌ Backend test failed: ${error.message}`, true);
+            }
+        }
+
+        // Auto-test when page loads
+        window.onload = function() {
+            setTimeout(() => {
+                testScripts();
+                testComponents();
+            }, 1000);
+        };
+    </script>
+
+    <!-- Load the actual dashboard scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/crud.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- Include modal for testing -->
+    <div id="crud-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="background: white; margin: 10% auto; width: 80%; max-width: 600px; border-radius: 8px; overflow: hidden;">
+            <div style="padding: 20px; border-bottom: 1px solid #ddd;">
+                <h3 id="modal-title">Test Modal</h3>
+            </div>
+            <div id="modal-body" style="padding: 20px;">
+                Modal content
+            </div>
+            <div class="modal-footer" style="padding: 20px; text-align: right;">
+                <button onclick="document.getElementById('crud-modal').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

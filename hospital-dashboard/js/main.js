@@ -640,13 +640,13 @@ class HospitalDashboard {
                 <td>${this.formatDateTime(patient.registered_at)}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="action-btn view" onclick="dashboard.viewRecord('patients', ${patient.id})">
+                        <button class="action-btn view" onclick="viewRecord('patients', ${patient.id})">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="action-btn edit" onclick="dashboard.openCrudModal('patients', 'edit', ${patient.id})">
+                        <button class="action-btn edit" onclick="editRecord('patients', ${patient.id})">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete" onclick="dashboard.deleteRecord('patients', ${patient.id})">
+                        <button class="action-btn delete" onclick="deleteRecord('patients', ${patient.id})">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -713,7 +713,7 @@ class HospitalDashboard {
                         <button class="action-btn view" onclick="dashboard.viewRecord('departments', ${dept.id})">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="action-btn edit" onclick="dashboard.openCrudModal('departments', 'edit', ${dept.id})">
+                        <button class="action-btn edit" onclick="dashboard.editRecord('departments', ${dept.id})">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="action-btn delete" onclick="dashboard.deleteRecord('departments', ${dept.id})">
@@ -743,13 +743,13 @@ class HospitalDashboard {
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="action-btn view" onclick="dashboard.viewRecord('doctors', ${doctor.id})">
+                        <button class="action-btn view" onclick="viewRecord('doctors', ${doctor.id})">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="action-btn edit" onclick="dashboard.openCrudModal('doctors', 'edit', ${doctor.id})">
+                        <button class="action-btn edit" onclick="editRecord('doctors', ${doctor.id})">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete" onclick="dashboard.deleteRecord('doctors', ${doctor.id})">
+                        <button class="action-btn delete" onclick="deleteRecord('doctors', ${doctor.id})">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -772,13 +772,13 @@ class HospitalDashboard {
                 <td>$${appointment.consultation_fee || '0.00'}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="action-btn view" onclick="dashboard.viewRecord('appointments', ${appointment.id})">
+                        <button class="action-btn view" onclick="viewRecord('appointments', ${appointment.id})">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="action-btn edit" onclick="dashboard.openCrudModal('appointments', 'edit', ${appointment.id})">
+                        <button class="action-btn edit" onclick="editRecord('appointments', ${appointment.id})">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete" onclick="dashboard.deleteRecord('appointments', ${appointment.id})">
+                        <button class="action-btn delete" onclick="deleteRecord('appointments', ${appointment.id})">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -804,13 +804,13 @@ class HospitalDashboard {
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="action-btn view" onclick="dashboard.viewRecord('medical-reports', ${report.id})">
+                        <button class="action-btn view" onclick="viewRecord('medical-reports', ${report.id})">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="action-btn edit" onclick="dashboard.openCrudModal('medical-reports', 'edit', ${report.id})">
+                        <button class="action-btn edit" onclick="editRecord('medical-reports', ${report.id})">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete" onclick="dashboard.deleteRecord('medical-reports', ${report.id})">
+                        <button class="action-btn delete" onclick="deleteRecord('medical-reports', ${report.id})">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -1108,18 +1108,19 @@ class HospitalDashboard {
     // Placeholder methods for CRUD operations - will be overridden by crud.js
     openCrudModal(type, action, id = null) {
         console.log(`Opening ${action} modal for ${type}`, id);
-        // Check if global function exists
-        if (typeof window.openCrudModal === 'function') {
-            window.openCrudModal(type, action, id);
+        // Use the global CrudManager instance
+        if (window.crudManager) {
+            window.crudManager.openModal(type, action, id);
         } else {
-            console.error('CRUD modal function not available');
+            console.error('CrudManager not available');
+            alert('CRUD functionality not available. Please refresh the page.');
         }
     }
 
     closeCrudModal() {
-        // Check if global function exists
-        if (typeof window.closeCrudModal === 'function') {
-            window.closeCrudModal();
+        // Use the global CrudManager instance
+        if (window.crudManager) {
+            window.crudManager.closeModal();
         } else {
             const modal = document.getElementById('crud-modal');
             if (modal) {
@@ -1130,13 +1131,33 @@ class HospitalDashboard {
 
     viewRecord(type, id) {
         console.log(`Viewing ${type} record:`, id);
-        // Implementation for viewing records
+        // Use CrudManager to open in view mode
+        if (window.crudManager) {
+            window.crudManager.openModal(type, 'view', id);
+        } else {
+            alert('View functionality not available');
+        }
+    }
+
+    editRecord(type, id) {
+        console.log(`Editing ${type} record:`, id);
+        // Use CrudManager to open in edit mode
+        if (window.crudManager) {
+            window.crudManager.openModal(type, 'edit', id);
+        } else {
+            alert('Edit functionality not available');
+        }
     }
 
     deleteRecord(type, id) {
         if (confirm('Are you sure you want to delete this record?')) {
             console.log(`Deleting ${type} record:`, id);
-            // Implementation for deleting records
+            // Use CrudManager to delete record
+            if (window.crudManager) {
+                window.crudManager.deleteRecord(type, id);
+            } else {
+                alert('Delete functionality not available');
+            }
         }
     }
 
@@ -1145,20 +1166,94 @@ class HospitalDashboard {
     }
 
     updateCharts(data) {
-        // Chart update logic will be handled in charts.js
+        if (window.chartManager && data) {
+            // Update appointment status chart
+            if (data.appointmentStatus && window.chartManager.charts.appointmentStatus) {
+                window.chartManager.charts.appointmentStatus.data.datasets[0].data = data.appointmentStatus.data;
+                window.chartManager.charts.appointmentStatus.update();
+            }
+
+            // Update department distribution chart
+            if (data.departmentDistribution && window.chartManager.charts.department) {
+                window.chartManager.charts.department.data.labels = data.departmentDistribution.labels;
+                window.chartManager.charts.department.data.datasets[0].data = data.departmentDistribution.data;
+                window.chartManager.charts.department.update();
+            }
+
+            // Update blood group distribution chart
+            if (data.bloodGroupDistribution && window.chartManager.charts.bloodGroup) {
+                window.chartManager.charts.bloodGroup.data.datasets[0].data = data.bloodGroupDistribution.data;
+                window.chartManager.charts.bloodGroup.update();
+            }
+
+            // Update age distribution chart
+            if (data.ageDistribution && window.chartManager.charts.ageGroup) {
+                window.chartManager.charts.ageGroup.data.datasets[0].data = data.ageDistribution.data;
+                window.chartManager.charts.ageGroup.update();
+            }
+
+            // Update gender distribution chart
+            if (data.genderDistribution && window.chartManager.charts.gender) {
+                window.chartManager.charts.gender.data.datasets[0].data = data.genderDistribution.data;
+                window.chartManager.charts.gender.update();
+            }
+
+            // Update experience distribution chart (revenue chart placeholder)
+            if (data.experienceDistribution && window.chartManager.charts.revenue) {
+                window.chartManager.charts.revenue.data.labels = data.experienceDistribution.labels;
+                window.chartManager.charts.revenue.data.datasets[0].data = data.experienceDistribution.data;
+                window.chartManager.charts.revenue.update();
+            }
+        }
     }
 }
 
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('main.js: DOMContentLoaded event fired');
-    window.dashboard = new HospitalDashboard();
-    console.log('main.js: Dashboard instance created and assigned to window.dashboard');
+    
+    // Add a delay to ensure all scripts are loaded
+    setTimeout(() => {
+        try {
+            window.dashboard = new HospitalDashboard();
+            console.log('main.js: Dashboard instance created and assigned to window.dashboard');
+            
+            // Verify dashboard is working
+            if (window.dashboard && typeof window.dashboard.init === 'function') {
+                console.log('✅ Dashboard initialized successfully');
+            } else {
+                console.error('❌ Dashboard initialization failed');
+            }
+        } catch (error) {
+            console.error('Error initializing dashboard:', error);
+        }
+    }, 100);
 });
 
 // Global functions for inline event handlers
 function openCrudModal(type, action, id = null) {
-    window.dashboard.openCrudModal(type, action, id);
+    console.log('Global openCrudModal called with:', { type, action, id });
+    
+    // Check if dashboard is available
+    if (!window.dashboard) {
+        console.error('Dashboard not available');
+        alert('Dashboard not loaded yet. Please refresh the page and try again.');
+        return;
+    }
+    
+    // Check if crudManager is available
+    if (!window.crudManager) {
+        console.error('CrudManager not available');
+        alert('CRUD system not loaded. Please refresh the page and try again.');
+        return;
+    }
+    
+    try {
+        window.dashboard.openCrudModal(type, action, id);
+    } catch (error) {
+        console.error('Error opening modal:', error);
+        alert('Error opening form: ' + error.message);
+    }
 }
 
 function closeCrudModal() {
@@ -1171,6 +1266,19 @@ function applyFilters(type) {
 
 function clearFilters(type) {
     window.dashboard.clearFilters(type);
+}
+
+// Action button functions
+function viewRecord(type, id) {
+    window.dashboard.viewRecord(type, id);
+}
+
+function editRecord(type, id) {
+    window.dashboard.editRecord(type, id);
+}
+
+function deleteRecord(type, id) {
+    window.dashboard.deleteRecord(type, id);
 }
 
 // SQL Display Functions
