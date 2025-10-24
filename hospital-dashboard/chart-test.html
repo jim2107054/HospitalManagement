@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart Test</title>
+    <style>
+        .chart-container {
+            width: 400px;
+            height: 400px;
+            margin: 20px;
+            border: 1px solid #ccc;
+        }
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chart Test Page</h1>
+    
+    <div class="chart-container">
+        <h3>Test Chart</h3>
+        <canvas id="testChart"></canvas>
+    </div>
+    
+    <div id="output"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+        
+        function testChart() {
+            const ctx = document.getElementById('testChart');
+            if (!ctx) {
+                console.error('Canvas not found');
+                return;
+            }
+            
+            try {
+                const chart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Red', 'Blue', 'Yellow', 'Green'],
+                        datasets: [{
+                            data: [12, 19, 3, 5],
+                            backgroundColor: [
+                                '#ff6384',
+                                '#36a2eb',
+                                '#ffce56',
+                                '#4bc0c0'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+                
+                console.log('Chart created successfully:', chart);
+                document.getElementById('output').innerHTML = '<p style="color: green;">Chart created successfully!</p>';
+                
+            } catch (error) {
+                console.error('Error creating chart:', error);
+                document.getElementById('output').innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Test immediately
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', testChart);
+        } else {
+            testChart();
+        }
+        
+        // Also test fetch to overview.php
+        fetch('php/overview.php')
+            .then(response => response.text())
+            .then(text => {
+                console.log('Overview response:', text);
+                try {
+                    const data = JSON.parse(text);
+                    console.log('Overview data:', data);
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    </script>
+</body>
+</html>

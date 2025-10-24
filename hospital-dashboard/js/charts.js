@@ -2,7 +2,28 @@
 class ChartManager {
     constructor() {
         this.charts = {};
+        this.isReady = false;
+        
+        // Wait for DOM to be ready before initializing
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.initialize();
+            });
+        } else {
+            this.initialize();
+        }
+    }
+
+    initialize() {
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded!');
+            return;
+        }
+        
+        console.log('Initializing charts...');
         this.initCharts();
+        this.isReady = true;
     }
 
     initCharts() {
@@ -13,53 +34,62 @@ class ChartManager {
         this.createGenderChart();
         this.createAgeGroupChart();
         this.createRevenueChart();
+        console.log('Charts initialized successfully');
     }
 
     createAppointmentStatusChart() {
         const ctx = document.getElementById('appointmentStatusChart');
-        if (!ctx) return;
+        if (!ctx) {
+            console.warn('appointmentStatusChart canvas not found');
+            return;
+        }
 
-        this.charts.appointmentStatus = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: ['Scheduled', 'Completed', 'Cancelled', 'No-Show'],
-                datasets: [{
-                    data: [0, 0, 0, 0],
-                    backgroundColor: [
-                        '#3498db',
-                        '#27ae60',
-                        '#e74c3c',
-                        '#f39c12'
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.parsed || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                return `${label}: ${value} (${percentage}%)`;
+        try {
+            this.charts.appointmentStatus = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Scheduled', 'Completed', 'Cancelled', 'No-Show'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            '#3498db',
+                            '#27ae60',
+                            '#e74c3c',
+                            '#f39c12'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+            console.log('Appointment status chart created');
+        } catch (error) {
+            console.error('Error creating appointment status chart:', error);
+        }
     }
 
     createBloodGroupChart() {
@@ -312,28 +342,41 @@ class ChartManager {
     }
 
     updateCharts(data) {
-        if (data.appointment_status && this.charts.appointmentStatus) {
-            this.updateAppointmentStatusChart(data.appointment_status);
+        if (!this.isReady) {
+            console.warn('Charts not ready yet, skipping update');
+            return;
         }
 
-        if (data.blood_groups && this.charts.bloodGroup) {
-            this.updateBloodGroupChart(data.blood_groups);
-        }
+        try {
+            console.log('Updating charts with data:', data);
 
-        if (data.departments && this.charts.department) {
-            this.updateDepartmentChart(data.departments);
-        }
+            if (data.appointment_status && this.charts.appointmentStatus) {
+                this.updateAppointmentStatusChart(data.appointment_status);
+            }
 
-        if (data.gender_distribution && this.charts.gender) {
-            this.updateGenderChart(data.gender_distribution);
-        }
+            if (data.blood_groups && this.charts.bloodGroup) {
+                this.updateBloodGroupChart(data.blood_groups);
+            }
 
-        if (data.age_groups && this.charts.ageGroup) {
-            this.updateAgeGroupChart(data.age_groups);
-        }
+            if (data.departments && this.charts.department) {
+                this.updateDepartmentChart(data.departments);
+            }
 
-        if (data.department_revenue && this.charts.revenue) {
-            this.updateRevenueChart(data.department_revenue);
+            if (data.gender_distribution && this.charts.gender) {
+                this.updateGenderChart(data.gender_distribution);
+            }
+
+            if (data.age_groups && this.charts.ageGroup) {
+                this.updateAgeGroupChart(data.age_groups);
+            }
+
+            if (data.department_revenue && this.charts.revenue) {
+                this.updateRevenueChart(data.department_revenue);
+            }
+
+            console.log('Charts updated successfully');
+        } catch (error) {
+            console.error('Error updating charts:', error);
         }
     }
 

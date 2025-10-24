@@ -10,8 +10,11 @@ class HospitalDashboard {
 
     init() {
         this.setupEventListeners();
-        this.loadOverviewData();
-        this.initCharts();
+        
+        // Wait a bit for Chart.js and charts.js to load, then load data
+        setTimeout(() => {
+            this.loadOverviewData();
+        }, 100);
     }
 
     setupEventListeners() {
@@ -109,7 +112,9 @@ class HospitalDashboard {
     }
 
     async loadOverviewData() {
+        console.log('Starting loadOverviewData...');
         try {
+            console.log('Fetching overview data from php/overview.php');
             const response = await fetch('php/overview.php');
             
             // Check if response is ok
@@ -118,18 +123,21 @@ class HospitalDashboard {
             }
             
             const text = await response.text();
-            console.log('Overview API response:', text);
+            console.log('Overview API response text:', text);
             
             // Try to parse as JSON
             let data;
             try {
                 data = JSON.parse(text);
+                console.log('Parsed overview data:', data);
             } catch (e) {
                 console.error('Failed to parse JSON:', text);
                 throw new Error('Invalid JSON response from server');
             }
 
             if (data.success) {
+                console.log('Overview data loaded successfully, updating stats...');
+                
                 // Update main stats
                 document.getElementById('total-patients').textContent = data.stats.total_patients || 0;
                 document.getElementById('total-doctors').textContent = data.stats.total_doctors || 0;
@@ -142,8 +150,13 @@ class HospitalDashboard {
                 document.getElementById('upcoming-appointments').textContent = data.stats.upcoming_appointments || 0;
                 document.getElementById('avg-consultation-fee').textContent = '$' + (data.stats.avg_consultation_fee || 0);
 
+                console.log('Stats updated, now updating charts...');
+                console.log('Chart data:', data.charts);
+                
                 // Update charts
                 this.updateCharts(data.charts);
+                
+                console.log('Overview data loading completed');
             } else {
                 console.warn('API returned success: false', data);
                 // Set default values
@@ -151,6 +164,7 @@ class HospitalDashboard {
             }
         } catch (error) {
             console.error('Error loading overview data:', error);
+            console.error('Error stack:', error.stack);
             this.setDefaultOverviewStats();
         }
     }
@@ -1335,44 +1349,18 @@ class HospitalDashboard {
     }
 
     updateCharts(data) {
+        console.log('updateCharts called with data:', data);
+        console.log('window.chartManager available:', !!window.chartManager);
+        
         if (window.chartManager && data) {
-            // Update appointment status chart
-            if (data.appointmentStatus && window.chartManager.charts.appointmentStatus) {
-                window.chartManager.charts.appointmentStatus.data.datasets[0].data = data.appointmentStatus.data;
-                window.chartManager.charts.appointmentStatus.update();
-            }
-
-            // Update department distribution chart
-            if (data.departmentDistribution && window.chartManager.charts.department) {
-                window.chartManager.charts.department.data.labels = data.departmentDistribution.labels;
-                window.chartManager.charts.department.data.datasets[0].data = data.departmentDistribution.data;
-                window.chartManager.charts.department.update();
-            }
-
-            // Update blood group distribution chart
-            if (data.bloodGroupDistribution && window.chartManager.charts.bloodGroup) {
-                window.chartManager.charts.bloodGroup.data.datasets[0].data = data.bloodGroupDistribution.data;
-                window.chartManager.charts.bloodGroup.update();
-            }
-
-            // Update age distribution chart
-            if (data.ageDistribution && window.chartManager.charts.ageGroup) {
-                window.chartManager.charts.ageGroup.data.datasets[0].data = data.ageDistribution.data;
-                window.chartManager.charts.ageGroup.update();
-            }
-
-            // Update gender distribution chart
-            if (data.genderDistribution && window.chartManager.charts.gender) {
-                window.chartManager.charts.gender.data.datasets[0].data = data.genderDistribution.data;
-                window.chartManager.charts.gender.update();
-            }
-
-            // Update experience distribution chart (revenue chart placeholder)
-            if (data.experienceDistribution && window.chartManager.charts.revenue) {
-                window.chartManager.charts.revenue.data.labels = data.experienceDistribution.labels;
-                window.chartManager.charts.revenue.data.datasets[0].data = data.experienceDistribution.data;
-                window.chartManager.charts.revenue.update();
-            }
+            console.log('Calling chartManager.updateCharts...');
+            
+            // Use chartManager's updateCharts method which expects the correct format
+            window.chartManager.updateCharts(data);
+        } else {
+            console.warn('chartManager not available or no data provided');
+            console.warn('window.chartManager:', window.chartManager);
+            console.warn('data:', data);
         }
     }
 }
