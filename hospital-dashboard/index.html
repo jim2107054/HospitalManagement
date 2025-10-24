@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Left Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-hospital"></i>
+                    <h2>MediPlus+</h2>
+                </div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-page="overview">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Overview</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="patients">
+                        <i class="fas fa-user-injured"></i>
+                        <span>Patients</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="departments">
+                        <i class="fas fa-building"></i>
+                        <span>Departments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="doctors">
+                        <i class="fas fa-user-md"></i>
+                        <span>Doctors</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="appointments">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Appointments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="medical-reports">
+                        <i class="fas fa-file-medical"></i>
+                        <span>Medical Reports</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="page-title">Overview</h1>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Admin User</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area" id="content-area">
+                <!-- Dynamic content will be loaded here -->
+                
+                <!-- Overview Page (Default) -->
+                <div id="overview-page" class="page-content active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-user-injured"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-patients">0</h3>
+                                <p>Total Patients</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-doctors">0</h3>
+                                <p>Total Doctors</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-appointments">0</h3>
+                                <p>Total Appointments</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-departments">0</h3>
+                                <p>Total Departments</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <h3>Appointments by Status</h3>
+                            <canvas id="appointmentStatusChart"></canvas>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <h3>Patients by Blood Group</h3>
+                            <canvas id="bloodGroupChart"></canvas>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <h3>Doctors by Department</h3>
+                            <canvas id="departmentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patients Page -->
+                <div id="patients-page" class="page-content">
+                    <div class="page-header">
+                        <h2>Patients Management</h2>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="openCrudModal('patients', 'create')">
+                                <i class="fas fa-plus"></i> Add Patient
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <h3 id="patients-total">0</h3>
+                            <p>Total Patients</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="patients-male">0</h3>
+                            <p>Male</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="patients-female">0</h3>
+                            <p>Female</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="patients-today">0</h3>
+                            <p>Registered Today</p>
+                        </div>
+                    </div>
+
+                    <div class="filters-section">
+                        <h3>Filter Patients</h3>
+                        <div class="filters-grid">
+                            <select id="filter-gender" class="filter-select">
+                                <option value="">All Genders</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            
+                            <select id="filter-blood-group" class="filter-select">
+                                <option value="">All Blood Groups</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                            
+                            <input type="date" id="filter-date-from" class="filter-input" placeholder="Date From">
+                            <input type="date" id="filter-date-to" class="filter-input" placeholder="Date To">
+                            <input type="text" id="filter-search" class="filter-input" placeholder="Search by name, phone, email...">
+                            
+                            <button class="btn btn-secondary" onclick="applyFilters('patients')">
+                                <i class="fas fa-search"></i> Apply Filters
+                            </button>
+                            <button class="btn btn-outline" onclick="clearFilters('patients')">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table" id="patients-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Date of Birth</th>
+                                    <th>Gender</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th>Blood Group</th>
+                                    <th>Registered</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patients-table-body">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Departments Page -->
+                <div id="departments-page" class="page-content">
+                    <div class="page-header">
+                        <h2>Departments Management</h2>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="openCrudModal('departments', 'create')">
+                                <i class="fas fa-plus"></i> Add Department
+                            </button>
+                            <button class="btn btn-outline" onclick="exportData('departments')">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <h3 id="departments-total">0</h3>
+                            <p>Total Departments</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="departments-with-head">0</h3>
+                            <p>With Head Doctor</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="departments-doctors">0</h3>
+                            <p>Total Doctors</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="departments-active">0</h3>
+                            <p>Active Departments</p>
+                        </div>
+                    </div>
+
+                    <div class="filters-section">
+                        <h3>Filter Departments</h3>
+                        <div class="filters-grid">
+                            <input type="text" id="filter-dept-name" class="filter-input" placeholder="Search by department name...">
+                            <input type="text" id="filter-dept-location" class="filter-input" placeholder="Search by location...">
+                            <select id="filter-dept-has-head" class="filter-select">
+                                <option value="">All Departments</option>
+                                <option value="1">With Head Doctor</option>
+                                <option value="0">Without Head Doctor</option>
+                            </select>
+                            <input type="text" id="filter-dept-description" class="filter-input" placeholder="Search in description...">
+                            <button class="btn btn-secondary" onclick="applyFilters('departments')">
+                                <i class="fas fa-search"></i> Apply Filters
+                            </button>
+                            <button class="btn btn-outline" onclick="clearFilters('departments')">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table" id="departments-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Head Doctor</th>
+                                    <th>Contact</th>
+                                    <th>Location</th>
+                                    <th>Doctors Count</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="departments-table-body">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Doctors Page -->
+                <div id="doctors-page" class="page-content">
+                    <div class="page-header">
+                        <h2>Doctors Management</h2>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="openCrudModal('doctors', 'create')">
+                                <i class="fas fa-plus"></i> Add Doctor
+                            </button>
+                            <button class="btn btn-outline" onclick="exportData('doctors')">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <h3 id="doctors-total">0</h3>
+                            <p>Total Doctors</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="doctors-available">0</h3>
+                            <p>Available Today</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="doctors-specializations">0</h3>
+                            <p>Specializations</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="doctors-appointments-today">0</h3>
+                            <p>Appointments Today</p>
+                        </div>
+                    </div>
+
+                    <div class="filters-section">
+                        <h3>Filter Doctors</h3>
+                        <div class="filters-grid">
+                            <select id="filter-doctor-department" class="filter-select">
+                                <option value="">All Departments</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            <select id="filter-doctor-specialization" class="filter-select">
+                                <option value="">All Specializations</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            <select id="filter-doctor-experience" class="filter-select">
+                                <option value="">All Experience Levels</option>
+                                <option value="0-5">0-5 years</option>
+                                <option value="6-10">6-10 years</option>
+                                <option value="11-15">11-15 years</option>
+                                <option value="16+">16+ years</option>
+                            </select>
+                            <select id="filter-doctor-availability" class="filter-select">
+                                <option value="">All Doctors</option>
+                                <option value="available">Available Today</option>
+                                <option value="busy">Busy Today</option>
+                            </select>
+                            <input type="text" id="filter-doctor-search" class="filter-input" placeholder="Search by name, email, license...">
+                            <button class="btn btn-secondary" onclick="applyFilters('doctors')">
+                                <i class="fas fa-search"></i> Apply Filters
+                            </button>
+                            <button class="btn btn-outline" onclick="clearFilters('doctors')">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table" id="doctors-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Specialization</th>
+                                    <th>Department</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th>Experience</th>
+                                    <th>Fee</th>
+                                    <th>Availability</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="doctors-table-body">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Appointments Page -->
+                <div id="appointments-page" class="page-content">
+                    <div class="page-header">
+                        <h2>Appointments Management</h2>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="openCrudModal('appointments', 'create')">
+                                <i class="fas fa-plus"></i> Add Appointment
+                            </button>
+                            <button class="btn btn-outline" onclick="exportData('appointments')">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <h3 id="appointments-total">0</h3>
+                            <p>Total Appointments</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="appointments-today">0</h3>
+                            <p>Today's Appointments</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="appointments-scheduled">0</h3>
+                            <p>Scheduled</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="appointments-completed">0</h3>
+                            <p>Completed</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="appointments-upcoming">0</h3>
+                            <p>This Week</p>
+                        </div>
+                    </div>
+
+                    <div class="filters-section">
+                        <h3>Filter Appointments</h3>
+                        <div class="filters-grid">
+                            <select id="filter-appointment-status" class="filter-select">
+                                <option value="">All Status</option>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="No-Show">No-Show</option>
+                            </select>
+                            <select id="filter-appointment-doctor" class="filter-select">
+                                <option value="">All Doctors</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            <select id="filter-appointment-department" class="filter-select">
+                                <option value="">All Departments</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            <input type="date" id="filter-appointment-date-from" class="filter-input" placeholder="Date From">
+                            <input type="date" id="filter-appointment-date-to" class="filter-input" placeholder="Date To">
+                            <input type="text" id="filter-appointment-search" class="filter-input" placeholder="Search patient, doctor, reason...">
+                            <button class="btn btn-secondary" onclick="applyFilters('appointments')">
+                                <i class="fas fa-search"></i> Apply Filters
+                            </button>
+                            <button class="btn btn-outline" onclick="clearFilters('appointments')">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table" id="appointments-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Department</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Reason</th>
+                                    <th>Fee</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointments-table-body">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Medical Reports Page -->
+                <div id="medical-reports-page" class="page-content">
+                    <div class="page-header">
+                        <h2>Medical Reports Management</h2>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="openCrudModal('medical-reports', 'create')">
+                                <i class="fas fa-plus"></i> Add Medical Report
+                            </button>
+                            <button class="btn btn-outline" onclick="exportData('medical-reports')">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <h3 id="reports-total">0</h3>
+                            <p>Total Reports</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="reports-today">0</h3>
+                            <p>Today's Reports</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="reports-this-week">0</h3>
+                            <p>This Week</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="reports-follow-ups">0</h3>
+                            <p>Follow-ups Due</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3 id="reports-unique-patients">0</h3>
+                            <p>Unique Patients</p>
+                        </div>
+                    </div>
+
+                    <div class="filters-section">
+                        <h3>Filter Medical Reports</h3>
+                        <div class="filters-grid">
+                            <select id="filter-report-doctor" class="filter-select">
+                                <option value="">All Doctors</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            <select id="filter-report-department" class="filter-select">
+                                <option value="">All Departments</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            <select id="filter-report-follow-up" class="filter-select">
+                                <option value="">All Reports</option>
+                                <option value="with_followup">With Follow-up</option>
+                                <option value="without_followup">Without Follow-up</option>
+                                <option value="followup_due">Follow-up Due</option>
+                                <option value="followup_overdue">Follow-up Overdue</option>
+                            </select>
+                            <input type="date" id="filter-report-date-from" class="filter-input" placeholder="Visit Date From">
+                            <input type="date" id="filter-report-date-to" class="filter-input" placeholder="Visit Date To">
+                            <input type="text" id="filter-report-search" class="filter-input" placeholder="Search patient, diagnosis, symptoms...">
+                            <button class="btn btn-secondary" onclick="applyFilters('medical-reports')">
+                                <i class="fas fa-search"></i> Apply Filters
+                            </button>
+                            <button class="btn btn-outline" onclick="clearFilters('medical-reports')">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table" id="medical-reports-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Department</th>
+                                    <th>Visit Date</th>
+                                    <th>Diagnosis</th>
+                                    <th>Treatment</th>
+                                    <th>Follow-up</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="medical-reports-table-body">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- CRUD Modal -->
+    <div id="crud-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Item</h3>
+                <span class="close-modal" onclick="closeCrudModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Form will be dynamically generated here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCrudModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitCrudForm()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/crud.js"></script>
+    <script src="js/charts.js"></script>
+</body>
+</html>

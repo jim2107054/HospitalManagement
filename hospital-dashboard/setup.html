@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System - Setup</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .setup-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        .setup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .setup-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .setup-header p {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        .step h3 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .step-number {
+            background: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button {
+            background: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .button:hover {
+            background: #2980b9;
+        }
+        .center {
+            text-align: center;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        .checklist li:before {
+            content: "✓";
+            color: #27ae60;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <h1>🏥 Hospital Management System</h1>
+            <p>Quick Setup Guide</p>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Important:</strong> Make sure you have PHP 7.4+, MySQL 5.7+, and a web server running before proceeding.
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Database Setup</h3>
+            <p>Create a MySQL database and import the schema:</p>
+            <div class="code-block">
+mysql -u root -p<br>
+CREATE DATABASE hospital_management;<br>
+USE hospital_management;<br>
+SOURCE database.sql;
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Configure Database Connection</h3>
+            <p>Edit the database settings in <code>includes/database.php</code>:</p>
+            <div class="code-block">
+private $host = 'localhost';<br>
+private $db_name = 'hospital_management';<br>
+private $username = 'your_username';<br>
+private $password = 'your_password';
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Verify Installation</h3>
+            <p>Check that these components are working:</p>
+            <ul class="checklist">
+                <li>Web server is running (Apache/Nginx)</li>
+                <li>PHP is configured and working</li>
+                <li>MySQL database is accessible</li>
+                <li>All project files are in the web directory</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Access the Dashboard</h3>
+            <p>Open your web browser and navigate to:</p>
+            <div class="code-block">
+http://localhost/hospital-dashboard/
+            </div>
+        </div>
+
+        <div class="success">
+            <strong>🎉 Sample Data Included:</strong><br>
+            The database includes sample departments, doctors, patients, and appointments to help you get started immediately!
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Features Overview</h3>
+            <ul class="checklist">
+                <li>Complete CRUD operations for all modules</li>
+                <li>Advanced SQL-based filtering</li>
+                <li>Interactive charts and statistics</li>
+                <li>Responsive design for all devices</li>
+                <li>Professional dashboard interface</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <strong>🔧 Troubleshooting:</strong><br>
+            If you encounter issues, check the README.md file for detailed troubleshooting steps and configuration options.
+        </div>
+
+        <div class="center">
+            <a href="index.html" class="button">🚀 Launch Dashboard</a>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 14px;">
+            <p>Hospital Management Dashboard v1.0</p>
+            <p>Built with HTML, CSS, JavaScript, PHP & MySQL</p>
+        </div>
+    </div>
+
+    <script>
+        // Simple check if we're running on a web server
+        if (window.location.protocol === 'file:') {
+            document.body.innerHTML = `
+                <div class="setup-container">
+                    <div class="setup-header">
+                        <h1>⚠️ Setup Required</h1>
+                    </div>
+                    <div class="warning">
+                        <strong>Error:</strong> This application must be run on a web server with PHP support.<br><br>
+                        Please set up a local web server (XAMPP, WAMP, MAMP) or deploy to a web hosting service.
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
