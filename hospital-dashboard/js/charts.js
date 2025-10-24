@@ -1,4 +1,4 @@
-// Charts for Hospital Management Dashboard
+// Charts for Hospital Management Dashboard - Using PIE CHARTS
 class ChartManager {
     constructor() {
         this.charts = {};
@@ -10,6 +10,9 @@ class ChartManager {
         this.createAppointmentStatusChart();
         this.createBloodGroupChart();
         this.createDepartmentChart();
+        this.createGenderChart();
+        this.createAgeGroupChart();
+        this.createRevenueChart();
     }
 
     createAppointmentStatusChart() {
@@ -17,7 +20,7 @@ class ChartManager {
         if (!ctx) return;
 
         this.charts.appointmentStatus = new Chart(ctx, {
-            type: 'doughnut',
+            type: 'pie',
             data: {
                 labels: ['Scheduled', 'Completed', 'Cancelled', 'No-Show'],
                 datasets: [{
@@ -64,7 +67,7 @@ class ChartManager {
         if (!ctx) return;
 
         this.charts.bloodGroup = new Chart(ctx, {
-            type: 'bar',
+            type: 'pie',
             data: {
                 labels: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],
                 datasets: [{
@@ -80,17 +83,8 @@ class ChartManager {
                         '#f39c12',
                         '#d68910'
                     ],
-                    borderColor: [
-                        '#2980b9',
-                        '#21618c',
-                        '#c0392b',
-                        '#a93226',
-                        '#229954',
-                        '#1e8449',
-                        '#d68910',
-                        '#b7950b'
-                    ],
-                    borderWidth: 1
+                    borderColor: '#fff',
+                    borderWidth: 2
                 }]
             },
             options: {
@@ -98,14 +92,21 @@ class ChartManager {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} patients (${percentage}%)`;
+                            }
                         }
                     }
                 }
@@ -118,7 +119,7 @@ class ChartManager {
         if (!ctx) return;
 
         this.charts.department = new Chart(ctx, {
-            type: 'bar',
+            type: 'pie',
             data: {
                 labels: [],
                 datasets: [{
@@ -130,33 +131,179 @@ class ChartManager {
                         '#e74c3c',
                         '#f39c12',
                         '#9b59b6',
-                        '#1abc9c'
+                        '#1abc9c',
+                        '#34495e',
+                        '#95a5a6'
                     ],
-                    borderColor: [
-                        '#2980b9',
-                        '#229954',
-                        '#c0392b',
-                        '#d68910',
-                        '#8e44ad',
-                        '#16a085'
-                    ],
-                    borderWidth: 1
+                    borderColor: '#fff',
+                    borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                indexAxis: 'y',
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} doctors (${percentage}%)`;
+                            }
+                        }
                     }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
+                }
+            }
+        });
+    }
+
+    createGenderChart() {
+        const ctx = document.getElementById('genderChart');
+        if (!ctx) return;
+
+        this.charts.gender = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Male', 'Female', 'Other'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: [
+                        '#3498db',
+                        '#e91e63',
+                        '#9c27b0'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} patients (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    createAgeGroupChart() {
+        const ctx = document.getElementById('ageGroupChart');
+        if (!ctx) return;
+
+        this.charts.ageGroup = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Under 18', '18-30', '31-50', '51-65', 'Over 65'],
+                datasets: [{
+                    data: [0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        '#ff6b6b',
+                        '#4ecdc4',
+                        '#45b7d1',
+                        '#96ceb4',
+                        '#feca57'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} patients (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    createRevenueChart() {
+        const ctx = document.getElementById('revenueChart');
+        if (!ctx) return;
+
+        this.charts.revenue = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [
+                        '#1abc9c',
+                        '#3498db',
+                        '#9b59b6',
+                        '#e74c3c',
+                        '#f39c12',
+                        '#27ae60',
+                        '#34495e',
+                        '#95a5a6'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                            }
                         }
                     }
                 }
@@ -175,6 +322,18 @@ class ChartManager {
 
         if (data.departments && this.charts.department) {
             this.updateDepartmentChart(data.departments);
+        }
+
+        if (data.gender_distribution && this.charts.gender) {
+            this.updateGenderChart(data.gender_distribution);
+        }
+
+        if (data.age_groups && this.charts.ageGroup) {
+            this.updateAgeGroupChart(data.age_groups);
+        }
+
+        if (data.department_revenue && this.charts.revenue) {
+            this.updateRevenueChart(data.department_revenue);
         }
     }
 
@@ -207,24 +366,37 @@ class ChartManager {
 
         chart.data.labels = departments;
         chart.data.datasets[0].data = doctorCounts;
-        
-        // Update colors if needed
-        const colors = [
-            '#3498db', '#27ae60', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c',
-            '#34495e', '#95a5a6', '#e67e22', '#2ecc71', '#f1c40f', '#e74c3c'
+        chart.update();
+    }
+
+    updateGenderChart(data) {
+        const chart = this.charts.gender;
+        const genderCounts = [
+            data.Male || 0,
+            data.Female || 0,
+            data.Other || 0
         ];
-        
-        chart.data.datasets[0].backgroundColor = colors.slice(0, departments.length);
-        chart.data.datasets[0].borderColor = colors.slice(0, departments.length).map(color => {
-            // Darken the color for border
-            return color.replace('3498db', '2980b9')
-                       .replace('27ae60', '229954')
-                       .replace('e74c3c', 'c0392b')
-                       .replace('f39c12', 'd68910')
-                       .replace('9b59b6', '8e44ad')
-                       .replace('1abc9c', '16a085');
-        });
-        
+
+        chart.data.datasets[0].data = genderCounts;
+        chart.update();
+    }
+
+    updateAgeGroupChart(data) {
+        const chart = this.charts.ageGroup;
+        const ageGroups = ['Under 18', '18-30', '31-50', '51-65', 'Over 65'];
+        const counts = ageGroups.map(ag => data[ag] || 0);
+
+        chart.data.datasets[0].data = counts;
+        chart.update();
+    }
+
+    updateRevenueChart(data) {
+        const chart = this.charts.revenue;
+        const departments = Object.keys(data);
+        const revenues = Object.values(data);
+
+        chart.data.labels = departments;
+        chart.data.datasets[0].data = revenues;
         chart.update();
     }
 

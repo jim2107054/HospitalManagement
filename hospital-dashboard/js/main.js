@@ -130,25 +130,40 @@ class HospitalDashboard {
             }
 
             if (data.success) {
-                // Update stats
+                // Update main stats
                 document.getElementById('total-patients').textContent = data.stats.total_patients || 0;
                 document.getElementById('total-doctors').textContent = data.stats.total_doctors || 0;
                 document.getElementById('total-appointments').textContent = data.stats.total_appointments || 0;
                 document.getElementById('total-departments').textContent = data.stats.total_departments || 0;
+
+                // Update additional stats
+                document.getElementById('today-appointments').textContent = data.stats.today_appointments || 0;
+                document.getElementById('week-patients').textContent = data.stats.week_patients || 0;
+                document.getElementById('upcoming-appointments').textContent = data.stats.upcoming_appointments || 0;
+                document.getElementById('avg-consultation-fee').textContent = '$' + (data.stats.avg_consultation_fee || 0);
 
                 // Update charts
                 this.updateCharts(data.charts);
             } else {
                 console.warn('API returned success: false', data);
                 // Set default values
-                document.getElementById('total-patients').textContent = '0';
-                document.getElementById('total-doctors').textContent = '0';
-                document.getElementById('total-appointments').textContent = '0';
-                document.getElementById('total-departments').textContent = '0';
+                this.setDefaultOverviewStats();
             }
         } catch (error) {
             console.error('Error loading overview data:', error);
+            this.setDefaultOverviewStats();
         }
+    }
+
+    setDefaultOverviewStats() {
+        document.getElementById('total-patients').textContent = '0';
+        document.getElementById('total-doctors').textContent = '0';
+        document.getElementById('total-appointments').textContent = '0';
+        document.getElementById('total-departments').textContent = '0';
+        document.getElementById('today-appointments').textContent = '0';
+        document.getElementById('week-patients').textContent = '0';
+        document.getElementById('upcoming-appointments').textContent = '0';
+        document.getElementById('avg-consultation-fee').textContent = '$0.00';
     }
 
     async loadPatientsData() {
@@ -817,22 +832,60 @@ class HospitalDashboard {
         this.showLoading();
         try {
             const filters = this.getFilters(type);
-            const response = await fetch(`php/${type}.php?action=filter`, {
+            const response = await fetch(`php/${type}.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(filters)
+                body: JSON.stringify({
+                    action: 'filter',
+                    ...filters
+                })
             });
 
             const data = await response.json();
             if (data.success) {
-                this.updateTable(type, data.data);
+                // Update table based on type
+                if (type === 'patients') {
+                    this.updatePatientsTable(data.data);
+                } else {
+                    this.updateTable(type, data.data);
+                }
+                
+                // Show SQL display button and store SQL code
+                if (data.sql_code) {
+                    this.showSQLDisplay(type);
+                    this.storeSQLCode(type, data.sql_code);
+                }
             }
         } catch (error) {
             console.error('Error applying filters:', error);
         } finally {
             this.hideLoading();
+        }
+    }
+
+    showSQLDisplay(type) {
+        const sqlDisplay = document.getElementById(`${type}-sql-display`);
+        if (sqlDisplay) {
+            sqlDisplay.style.display = 'block';
+        }
+    }
+
+    storeSQLCode(type, sqlCode) {
+        // Store SQL code for later display
+        if (!window.sqlCodes) {
+            window.sqlCodes = {};
+        }
+        window.sqlCodes[type] = sqlCode;
+    }
+
+    showSQLCode(type) {
+        if (window.sqlCodes && window.sqlCodes[type]) {
+            document.getElementById('sql-code-display').textContent = window.sqlCodes[type];
+            document.getElementById('sql-modal').style.display = 'block';
+        } else {
+            alert('No SQL code available. Please apply filters first.');
         }
     }
 
@@ -1118,4 +1171,31 @@ function applyFilters(type) {
 
 function clearFilters(type) {
     window.dashboard.clearFilters(type);
+}
+
+// SQL Display Functions
+function toggleSQLDisplay(type) {
+    window.dashboard.showSQLCode(type);
+}
+
+function closeSQLModal() {
+    document.getElementById('sql-modal').style.display = 'none';
+}
+
+function copySQLCode() {
+    const sqlCode = document.getElementById('sql-code-display').textContent;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(sqlCode).then(() => {
+            alert('SQL code copied to clipboard!');
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = sqlCode;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('SQL code copied to clipboard!');
+    }
 }

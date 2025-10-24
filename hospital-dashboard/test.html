@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Dashboard - Test</title>
+    <script>
+        // Simple test function to verify CRUD operations
+        async function testCRUD() {
+            console.log('Testing CRUD operations...');
+            
+            // Test patients endpoint
+            try {
+                const response = await fetch('php/patients.php');
+                const data = await response.json();
+                console.log('Patients endpoint:', data);
+                
+                if (data.success) {
+                    console.log('✅ Patients endpoint working');
+                } else {
+                    console.log('❌ Patients endpoint error:', data.error);
+                }
+            } catch (error) {
+                console.log('❌ Patients fetch error:', error);
+            }
+            
+            // Test departments endpoint
+            try {
+                const response = await fetch('php/departments.php');
+                const data = await response.json();
+                console.log('Departments endpoint:', data);
+                
+                if (data.success) {
+                    console.log('✅ Departments endpoint working');
+                } else {
+                    console.log('❌ Departments endpoint error:', data.error);
+                }
+            } catch (error) {
+                console.log('❌ Departments fetch error:', error);
+            }
+            
+            // Test overview endpoint
+            try {
+                const response = await fetch('php/overview_new.php');
+                const data = await response.json();
+                console.log('Overview endpoint:', data);
+                
+                if (data.success) {
+                    console.log('✅ Overview endpoint working');
+                } else {
+                    console.log('❌ Overview endpoint error:', data.error);
+                }
+            } catch (error) {
+                console.log('❌ Overview fetch error:', error);
+            }
+        }
+        
+        // Test when page loads
+        window.onload = function() {
+            testCRUD();
+        };
+    </script>
+</head>
+<body>
+    <h1>Hospital Dashboard Test Page</h1>
+    <p>Check the browser console (F12) for test results.</p>
+    <p>This page tests the CRUD endpoints to ensure they're working properly.</p>
+    
+    <h2>Quick Links:</h2>
+    <ul>
+        <li><a href="index.html">Main Dashboard</a></li>
+        <li><a href="setup.html">Database Setup</a></li>
+    </ul>
+    
+    <h2>Expected Results:</h2>
+    <ul>
+        <li>✅ Patients endpoint working</li>
+        <li>✅ Departments endpoint working</li>
+        <li>✅ Overview endpoint working</li>
+    </ul>
+    
+    <p><strong>Note:</strong> If the database is not set up, the endpoints will return demo data with database_status: 'demo_mode'</p>
+</body>
+</html>

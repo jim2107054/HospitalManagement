@@ -121,6 +121,46 @@
                                 <p>Total Departments</p>
                             </div>
                         </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="today-appointments">0</h3>
+                                <p>Today's Appointments</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="week-patients">0</h3>
+                                <p>New Patients (This Week)</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="upcoming-appointments">0</h3>
+                                <p>Upcoming Appointments</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="avg-consultation-fee">$0.00</h3>
+                                <p>Avg Consultation Fee</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="charts-container">
@@ -137,6 +177,21 @@
                         <div class="chart-card">
                             <h3>Doctors by Department</h3>
                             <canvas id="departmentChart"></canvas>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Patients by Gender</h3>
+                            <canvas id="genderChart"></canvas>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Patients by Age Group</h3>
+                            <canvas id="ageGroupChart"></canvas>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Department Revenue (30 days)</h3>
+                            <canvas id="revenueChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -202,6 +257,11 @@
                             </button>
                             <button class="btn btn-outline" onclick="clearFilters('patients')">
                                 <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                        <div class="sql-display" id="patients-sql-display" style="display: none;">
+                            <button class="btn btn-icon sql-toggle-btn" onclick="toggleSQLDisplay('patients')" title="View SQL Code">
+                                <i class="fas fa-code"></i>
                             </button>
                         </div>
                     </div>
@@ -587,6 +647,23 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeCrudModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="submitCrudForm()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SQL Code Display Modal -->
+    <div id="sql-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Applied SQL Query</h3>
+                <span class="close-modal" onclick="closeSQLModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <pre id="sql-code-display"></pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSQLModal()">Close</button>
+                <button class="btn btn-primary" onclick="copySQLCode()">Copy Code</button>
             </div>
         </div>
     </div>
