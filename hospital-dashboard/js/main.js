@@ -194,6 +194,9 @@ class HospitalDashboard {
 
                 // Update patients table
                 this.updatePatientsTable(data.patients);
+                
+                // Load filter options
+                await this.loadFilterOptions('patients');
             } else {
                 console.warn('Patients API returned invalid data:', data);
                 // Set default values
@@ -894,29 +897,50 @@ class HospitalDashboard {
         
         switch (type) {
             case 'patients':
-                filters.gender = document.getElementById('filter-gender')?.value || '';
-                filters.blood_group = document.getElementById('filter-blood-group')?.value || '';
-                filters.date_from = document.getElementById('filter-date-from')?.value || '';
-                filters.date_to = document.getElementById('filter-date-to')?.value || '';
-                filters.search = document.getElementById('filter-search')?.value || '';
+                filters.name = document.getElementById('filter-patient-name')?.value || '';
+                filters.gender = document.getElementById('filter-patient-gender')?.value || '';
+                filters.blood_group = document.getElementById('filter-patient-blood-group')?.value || '';
+                filters.phone = document.getElementById('filter-patient-phone')?.value || '';
+                filters.email = document.getElementById('filter-patient-email')?.value || '';
+                filters.birth_year = document.getElementById('filter-patient-birth-year')?.value || '';
+                filters.registered_date = document.getElementById('filter-patient-registered-date')?.value || '';
                 break;
             case 'departments':
-                filters.search = document.getElementById('filter-dept-search')?.value || '';
+                filters.name = document.getElementById('filter-dept-name')?.value || '';
+                filters.description = document.getElementById('filter-dept-description')?.value || '';
+                filters.head_doctor = document.getElementById('filter-dept-head-doctor')?.value || '';
+                filters.contact = document.getElementById('filter-dept-contact')?.value || '';
+                filters.location = document.getElementById('filter-dept-location')?.value || '';
+                filters.created_date = document.getElementById('filter-dept-created-date')?.value || '';
                 break;
             case 'doctors':
-                filters.department = document.getElementById('filter-department')?.value || '';
-                filters.specialization = document.getElementById('filter-specialization')?.value || '';
-                filters.search = document.getElementById('filter-doctor-search')?.value || '';
+                filters.name = document.getElementById('filter-doctor-name')?.value || '';
+                filters.specialization = document.getElementById('filter-doctor-specialization')?.value || '';
+                filters.department = document.getElementById('filter-doctor-department')?.value || '';
+                filters.phone = document.getElementById('filter-doctor-phone')?.value || '';
+                filters.email = document.getElementById('filter-doctor-email')?.value || '';
+                filters.experience = document.getElementById('filter-doctor-experience')?.value || '';
+                filters.fee = document.getElementById('filter-doctor-fee')?.value || '';
+                filters.availability = document.getElementById('filter-doctor-availability')?.value || '';
                 break;
             case 'appointments':
-                filters.status = document.getElementById('filter-appointment-status')?.value || '';
+                filters.patient = document.getElementById('filter-appointment-patient')?.value || '';
+                filters.doctor = document.getElementById('filter-appointment-doctor')?.value || '';
+                filters.department = document.getElementById('filter-appointment-department')?.value || '';
                 filters.date = document.getElementById('filter-appointment-date')?.value || '';
-                filters.search = document.getElementById('filter-appointment-search')?.value || '';
+                filters.time = document.getElementById('filter-appointment-time')?.value || '';
+                filters.status = document.getElementById('filter-appointment-status')?.value || '';
+                filters.reason = document.getElementById('filter-appointment-reason')?.value || '';
+                filters.fee = document.getElementById('filter-appointment-fee')?.value || '';
                 break;
             case 'medical-reports':
-                filters.date_from = document.getElementById('filter-report-date-from')?.value || '';
-                filters.date_to = document.getElementById('filter-report-date-to')?.value || '';
-                filters.search = document.getElementById('filter-report-search')?.value || '';
+                filters.patient = document.getElementById('filter-report-patient')?.value || '';
+                filters.doctor = document.getElementById('filter-report-doctor')?.value || '';
+                filters.department = document.getElementById('filter-report-department')?.value || '';
+                filters.visit_date = document.getElementById('filter-report-visit-date')?.value || '';
+                filters.diagnosis = document.getElementById('filter-report-diagnosis')?.value || '';
+                filters.treatment = document.getElementById('filter-report-treatment')?.value || '';
+                filters.follow_up = document.getElementById('filter-report-follow-up')?.value || '';
                 break;
         }
         
@@ -926,33 +950,178 @@ class HospitalDashboard {
     clearFilters(type) {
         switch (type) {
             case 'patients':
-                document.getElementById('filter-gender').value = '';
-                document.getElementById('filter-blood-group').value = '';
-                document.getElementById('filter-date-from').value = '';
-                document.getElementById('filter-date-to').value = '';
-                document.getElementById('filter-search').value = '';
+                document.getElementById('filter-patient-name').value = '';
+                document.getElementById('filter-patient-gender').value = '';
+                document.getElementById('filter-patient-blood-group').value = '';
+                document.getElementById('filter-patient-phone').value = '';
+                document.getElementById('filter-patient-email').value = '';
+                document.getElementById('filter-patient-birth-year').value = '';
+                document.getElementById('filter-patient-registered-date').value = '';
                 break;
             case 'departments':
-                document.getElementById('filter-dept-search').value = '';
+                document.getElementById('filter-dept-name').value = '';
+                document.getElementById('filter-dept-description').value = '';
+                document.getElementById('filter-dept-head-doctor').value = '';
+                document.getElementById('filter-dept-contact').value = '';
+                document.getElementById('filter-dept-location').value = '';
+                document.getElementById('filter-dept-created-date').value = '';
                 break;
             case 'doctors':
-                document.getElementById('filter-department').value = '';
-                document.getElementById('filter-specialization').value = '';
-                document.getElementById('filter-doctor-search').value = '';
+                document.getElementById('filter-doctor-name').value = '';
+                document.getElementById('filter-doctor-specialization').value = '';
+                document.getElementById('filter-doctor-department').value = '';
+                document.getElementById('filter-doctor-phone').value = '';
+                document.getElementById('filter-doctor-email').value = '';
+                document.getElementById('filter-doctor-experience').value = '';
+                document.getElementById('filter-doctor-fee').value = '';
+                document.getElementById('filter-doctor-availability').value = '';
                 break;
             case 'appointments':
-                document.getElementById('filter-appointment-status').value = '';
+                document.getElementById('filter-appointment-patient').value = '';
+                document.getElementById('filter-appointment-doctor').value = '';
+                document.getElementById('filter-appointment-department').value = '';
                 document.getElementById('filter-appointment-date').value = '';
-                document.getElementById('filter-appointment-search').value = '';
+                document.getElementById('filter-appointment-time').value = '';
+                document.getElementById('filter-appointment-status').value = '';
+                document.getElementById('filter-appointment-reason').value = '';
+                document.getElementById('filter-appointment-fee').value = '';
                 break;
             case 'medical-reports':
-                document.getElementById('filter-report-date-from').value = '';
-                document.getElementById('filter-report-date-to').value = '';
-                document.getElementById('filter-report-search').value = '';
+                document.getElementById('filter-report-patient').value = '';
+                document.getElementById('filter-report-doctor').value = '';
+                document.getElementById('filter-report-department').value = '';
+                document.getElementById('filter-report-visit-date').value = '';
+                document.getElementById('filter-report-diagnosis').value = '';
+                document.getElementById('filter-report-treatment').value = '';
+                document.getElementById('filter-report-follow-up').value = '';
                 break;
         }
         
         this.loadDataTable(type);
+    }
+
+    async loadFilterOptions(type) {
+        try {
+            const response = await fetch(`php/${type}.php?action=get_filter_options`);
+            const data = await response.json();
+            
+            if (data.success && data.options) {
+                this.populateFilterOptions(type, data.options);
+            }
+        } catch (error) {
+            console.error(`Error loading filter options for ${type}:`, error);
+        }
+    }
+
+    populateFilterOptions(type, options) {
+        switch (type) {
+            case 'patients':
+                this.populateSelectOptions('filter-patient-name', options.names || []);
+                this.populateSelectOptions('filter-patient-phone', options.phones || []);
+                this.populateSelectOptions('filter-patient-email', options.emails || []);
+                this.populateSelectOptions('filter-patient-birth-year', options.birth_years || []);
+                this.populateSelectOptions('filter-patient-registered-date', options.registered_dates || []);
+                break;
+            // Add other cases as needed
+        }
+    }
+
+    populateSelectOptions(selectId, options) {
+        const selectElement = document.getElementById(selectId);
+        if (!selectElement) return;
+
+        // Get the first option text to preserve it
+        const firstOption = selectElement.querySelector('option').textContent;
+        
+        // Clear existing options except the first one
+        selectElement.innerHTML = `<option value="">${firstOption}</option>`;
+        
+        // Add new options
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.textContent = option;
+            selectElement.appendChild(optionElement);
+        });
+    }
+
+    async exportToCSV(type) {
+        try {
+            this.showLoading();
+            
+            // Get current filters
+            const filters = this.getFilters(type);
+            
+            // Create form data for CSV export
+            const formData = {
+                action: 'export_csv',
+                ...filters
+            };
+            
+            // Create a temporary form to submit the export request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `php/${type}.php`;
+            form.style.display = 'none';
+            
+            // Add form fields
+            Object.keys(formData).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = formData[key];
+                form.appendChild(input);
+            });
+            
+            // Submit form
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+            
+            // Show success message
+            this.showSuccessMessage(`${this.getTypeName(type)} data exported successfully!`);
+            
+        } catch (error) {
+            console.error('Error exporting CSV:', error);
+            this.showErrorMessage('Error exporting data. Please try again.');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    showSuccessMessage(message) {
+        // Create a simple success notification
+        const notification = document.createElement('div');
+        notification.className = 'notification success';
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    getTypeName(type) {
+        const names = {
+            'patients': 'Patients',
+            'departments': 'Departments',
+            'doctors': 'Doctors',
+            'appointments': 'Appointments',
+            'medical-reports': 'Medical Reports'
+        };
+        return names[type] || type;
     }
 
     toggleSidebar() {
@@ -1305,5 +1474,14 @@ function copySQLCode() {
         document.execCommand('copy');
         document.body.removeChild(textArea);
         alert('SQL code copied to clipboard!');
+    }
+}
+
+// Global CSV export function
+function exportToCSV(type) {
+    if (window.dashboard) {
+        window.dashboard.exportToCSV(type);
+    } else {
+        alert('Dashboard not available');
     }
 }

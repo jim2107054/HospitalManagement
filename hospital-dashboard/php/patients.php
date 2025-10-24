@@ -51,6 +51,11 @@ try {
             $where = [];
             $params = [];
             
+            if (!empty($input['name'])) {
+                $where[] = "name = ?";
+                $params[] = $input['name'];
+            }
+            
             if (!empty($input['gender'])) {
                 $where[] = "gender = ?";
                 $params[] = $input['gender'];
@@ -61,22 +66,24 @@ try {
                 $params[] = $input['blood_group'];
             }
             
-            if (!empty($input['date_from'])) {
-                $where[] = "DATE(registered_at) >= ?";
-                $params[] = $input['date_from'];
+            if (!empty($input['phone'])) {
+                $where[] = "phone = ?";
+                $params[] = $input['phone'];
             }
             
-            if (!empty($input['date_to'])) {
-                $where[] = "DATE(registered_at) <= ?";
-                $params[] = $input['date_to'];
+            if (!empty($input['email'])) {
+                $where[] = "email = ?";
+                $params[] = $input['email'];
             }
             
-            if (!empty($input['search'])) {
-                $where[] = "(name LIKE ? OR phone LIKE ? OR email LIKE ?)";
-                $searchTerm = "%{$input['search']}%";
-                $params[] = $searchTerm;
-                $params[] = $searchTerm;
-                $params[] = $searchTerm;
+            if (!empty($input['birth_year'])) {
+                $where[] = "YEAR(date_of_birth) = ?";
+                $params[] = $input['birth_year'];
+            }
+            
+            if (!empty($input['registered_date'])) {
+                $where[] = "DATE(registered_at) = ?";
+                $params[] = $input['registered_date'];
             }
             
             $sql = "SELECT * FROM patients";
@@ -219,6 +226,110 @@ try {
                 'message' => 'Patient deleted successfully'
             ]);
             break;
+            
+        case 'get_filter_options':
+            // Get all unique values for dropdown filters
+            $options = [];
+            
+            // Names
+            $names = executeQuery("SELECT DISTINCT name FROM patients WHERE name IS NOT NULL ORDER BY name");
+            $options['names'] = array_column($names, 'name');
+            
+            // Phone numbers
+            $phones = executeQuery("SELECT DISTINCT phone FROM patients WHERE phone IS NOT NULL ORDER BY phone");
+            $options['phones'] = array_column($phones, 'phone');
+            
+            // Emails
+            $emails = executeQuery("SELECT DISTINCT email FROM patients WHERE email IS NOT NULL ORDER BY email");
+            $options['emails'] = array_column($emails, 'email');
+            
+            // Birth years
+            $birthYears = executeQuery("SELECT DISTINCT YEAR(date_of_birth) as birth_year FROM patients ORDER BY birth_year DESC");
+            $options['birth_years'] = array_column($birthYears, 'birth_year');
+            
+            // Registration dates
+            $regDates = executeQuery("SELECT DISTINCT DATE(registered_at) as reg_date FROM patients ORDER BY reg_date DESC");
+            $options['registered_dates'] = array_column($regDates, 'reg_date');
+            
+            echo json_encode([
+                'success' => true,
+                'options' => $options
+            ]);
+            break;
+            
+        case 'export_csv':
+            // Get all patients or filtered patients
+            $where = [];
+            $params = [];
+            
+            // Apply same filters as filter action
+            if (!empty($input['name'])) {
+                $where[] = "name = ?";
+                $params[] = $input['name'];
+            }
+            if (!empty($input['gender'])) {
+                $where[] = "gender = ?";
+                $params[] = $input['gender'];
+            }
+            if (!empty($input['blood_group'])) {
+                $where[] = "blood_group = ?";
+                $params[] = $input['blood_group'];
+            }
+            if (!empty($input['phone'])) {
+                $where[] = "phone = ?";
+                $params[] = $input['phone'];
+            }
+            if (!empty($input['email'])) {
+                $where[] = "email = ?";
+                $params[] = $input['email'];
+            }
+            if (!empty($input['birth_year'])) {
+                $where[] = "YEAR(date_of_birth) = ?";
+                $params[] = $input['birth_year'];
+            }
+            if (!empty($input['registered_date'])) {
+                $where[] = "DATE(registered_at) = ?";
+                $params[] = $input['registered_date'];
+            }
+            
+            $sql = "SELECT id, name, date_of_birth, gender, phone, email, address, blood_group, 
+                           emergency_contact_name, emergency_contact_phone, insurance_number, registered_at 
+                    FROM patients";
+            if (!empty($where)) {
+                $sql .= " WHERE " . implode(" AND ", $where);
+            }
+            $sql .= " ORDER BY name ASC";
+            
+            $patients = executeQuery($sql, $params);
+            
+            // Generate CSV content
+            $csvContent = "ID,Name,Date of Birth,Gender,Phone,Email,Address,Blood Group,Emergency Contact Name,Emergency Contact Phone,Insurance Number,Registered Date\n";
+            
+            foreach ($patients as $patient) {
+                $csvContent .= sprintf(
+                    "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+                    $patient['id'],
+                    '"' . str_replace('"', '""', $patient['name']) . '"',
+                    $patient['date_of_birth'],
+                    $patient['gender'],
+                    '"' . str_replace('"', '""', $patient['phone'] ?? '') . '"',
+                    '"' . str_replace('"', '""', $patient['email'] ?? '') . '"',
+                    '"' . str_replace('"', '""', $patient['address'] ?? '') . '"',
+                    $patient['blood_group'] ?? '',
+                    '"' . str_replace('"', '""', $patient['emergency_contact_name'] ?? '') . '"',
+                    '"' . str_replace('"', '""', $patient['emergency_contact_phone'] ?? '') . '"',
+                    '"' . str_replace('"', '""', $patient['insurance_number'] ?? '') . '"',
+                    $patient['registered_at']
+                );
+            }
+            
+            // Set headers for CSV download
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="patients_' . date('Y-m-d_H-i-s') . '.csv"');
+            header('Content-Length: ' . strlen($csvContent));
+            
+            echo $csvContent;
+            exit;
             
         case 'get_filter_sql':
             echo json_encode([

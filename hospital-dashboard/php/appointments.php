@@ -64,37 +64,50 @@ try {
             $where = [];
             $params = [];
             
+            // Handle dropdown filters instead of search
+            if (!empty($input['patient_name'])) {
+                $where[] = "p.name = ?";
+                $params[] = $input['patient_name'];
+            }
+            
+            if (!empty($input['doctor_name'])) {
+                $where[] = "d.name = ?";
+                $params[] = $input['doctor_name'];
+            }
+            
+            if (!empty($input['department_name'])) {
+                $where[] = "dept.name = ?";
+                $params[] = $input['department_name'];
+            }
+            
+            if (!empty($input['appointment_date'])) {
+                $where[] = "a.appointment_date = ?";
+                $params[] = $input['appointment_date'];
+            }
+            
+            if (!empty($input['appointment_time'])) {
+                $where[] = "a.appointment_time = ?";
+                $params[] = $input['appointment_time'];
+            }
+            
             if (!empty($input['status'])) {
                 $where[] = "a.status = ?";
                 $params[] = $input['status'];
             }
             
-            if (!empty($input['doctor'])) {
-                $where[] = "a.doctor_id = ?";
-                $params[] = $input['doctor'];
+            if (!empty($input['reason_for_visit'])) {
+                $where[] = "a.reason_for_visit = ?";
+                $params[] = $input['reason_for_visit'];
             }
             
-            if (!empty($input['department'])) {
-                $where[] = "d.department_id = ?";
-                $params[] = $input['department'];
+            if (!empty($input['consultation_fee'])) {
+                $where[] = "a.consultation_fee = ?";
+                $params[] = $input['consultation_fee'];
             }
             
-            if (!empty($input['date_from'])) {
-                $where[] = "a.appointment_date >= ?";
-                $params[] = $input['date_from'];
-            }
-            
-            if (!empty($input['date_to'])) {
-                $where[] = "a.appointment_date <= ?";
-                $params[] = $input['date_to'];
-            }
-            
-            if (!empty($input['search'])) {
-                $where[] = "(p.name LIKE ? OR d.name LIKE ? OR a.reason_for_visit LIKE ?)";
-                $searchTerm = "%{$input['search']}%";
-                $params[] = $searchTerm;
-                $params[] = $searchTerm;
-                $params[] = $searchTerm;
+            if (!empty($input['created_date'])) {
+                $where[] = "DATE(a.created_at) = ?";
+                $params[] = $input['created_date'];
             }
             
             $sql = "SELECT a.*, 
@@ -285,6 +298,161 @@ try {
                 'success' => true,
                 'sql_code' => $lastFilterSQL ?: 'No filter applied yet'
             ]);
+            break;
+            
+        case 'get_filter_options':
+            // Get distinct values for filter dropdowns
+            $options = [];
+            
+            // Get distinct patient names
+            $sql = "SELECT DISTINCT p.name FROM appointments a 
+                    LEFT JOIN patients p ON a.patient_id = p.id 
+                    WHERE p.name IS NOT NULL ORDER BY p.name";
+            $options['patient_names'] = array_column(executeQuery($sql), 'name');
+            
+            // Get distinct doctor names
+            $sql = "SELECT DISTINCT d.name FROM appointments a 
+                    LEFT JOIN doctors d ON a.doctor_id = d.id 
+                    WHERE d.name IS NOT NULL ORDER BY d.name";
+            $options['doctor_names'] = array_column(executeQuery($sql), 'name');
+            
+            // Get distinct department names
+            $sql = "SELECT DISTINCT dept.name FROM appointments a 
+                    LEFT JOIN doctors d ON a.doctor_id = d.id 
+                    LEFT JOIN departments dept ON d.department_id = dept.id 
+                    WHERE dept.name IS NOT NULL ORDER BY dept.name";
+            $options['department_names'] = array_column(executeQuery($sql), 'name');
+            
+            // Get distinct appointment dates
+            $sql = "SELECT DISTINCT appointment_date FROM appointments WHERE appointment_date IS NOT NULL ORDER BY appointment_date DESC";
+            $options['appointment_dates'] = array_column(executeQuery($sql), 'appointment_date');
+            
+            // Get distinct appointment times
+            $sql = "SELECT DISTINCT appointment_time FROM appointments WHERE appointment_time IS NOT NULL ORDER BY appointment_time";
+            $options['appointment_times'] = array_column(executeQuery($sql), 'appointment_time');
+            
+            // Get distinct statuses
+            $sql = "SELECT DISTINCT status FROM appointments WHERE status IS NOT NULL AND status != '' ORDER BY status";
+            $options['statuses'] = array_column(executeQuery($sql), 'status');
+            
+            // Get distinct reasons for visit
+            $sql = "SELECT DISTINCT reason_for_visit FROM appointments WHERE reason_for_visit IS NOT NULL AND reason_for_visit != '' ORDER BY reason_for_visit";
+            $options['reasons_for_visit'] = array_column(executeQuery($sql), 'reason_for_visit');
+            
+            // Get distinct consultation fees
+            $sql = "SELECT DISTINCT consultation_fee FROM appointments WHERE consultation_fee IS NOT NULL ORDER BY consultation_fee";
+            $options['consultation_fees'] = array_column(executeQuery($sql), 'consultation_fee');
+            
+            // Get distinct created dates
+            $sql = "SELECT DISTINCT DATE(created_at) as created_date FROM appointments WHERE created_at IS NOT NULL ORDER BY created_date DESC";
+            $options['created_dates'] = array_column(executeQuery($sql), 'created_date');
+            
+            echo json_encode([
+                'success' => true,
+                'data' => $options
+            ]);
+            break;
+            
+        case 'export_csv':
+            // Get filtered data for CSV export
+            $where = [];
+            $params = [];
+            
+            // Apply same filters as filter action
+            if (!empty($input['patient_name'])) {
+                $where[] = "p.name = ?";
+                $params[] = $input['patient_name'];
+            }
+            
+            if (!empty($input['doctor_name'])) {
+                $where[] = "d.name = ?";
+                $params[] = $input['doctor_name'];
+            }
+            
+            if (!empty($input['department_name'])) {
+                $where[] = "dept.name = ?";
+                $params[] = $input['department_name'];
+            }
+            
+            if (!empty($input['appointment_date'])) {
+                $where[] = "a.appointment_date = ?";
+                $params[] = $input['appointment_date'];
+            }
+            
+            if (!empty($input['appointment_time'])) {
+                $where[] = "a.appointment_time = ?";
+                $params[] = $input['appointment_time'];
+            }
+            
+            if (!empty($input['status'])) {
+                $where[] = "a.status = ?";
+                $params[] = $input['status'];
+            }
+            
+            if (!empty($input['reason_for_visit'])) {
+                $where[] = "a.reason_for_visit = ?";
+                $params[] = $input['reason_for_visit'];
+            }
+            
+            if (!empty($input['consultation_fee'])) {
+                $where[] = "a.consultation_fee = ?";
+                $params[] = $input['consultation_fee'];
+            }
+            
+            if (!empty($input['created_date'])) {
+                $where[] = "DATE(a.created_at) = ?";
+                $params[] = $input['created_date'];
+            }
+            
+            $sql = "SELECT a.id,
+                           p.name as patient_name,
+                           d.name as doctor_name,
+                           dept.name as department_name,
+                           a.appointment_date,
+                           a.appointment_time,
+                           a.status,
+                           a.reason_for_visit,
+                           a.consultation_fee,
+                           a.notes,
+                           DATE(a.created_at) as created_date
+                    FROM appointments a
+                    LEFT JOIN patients p ON a.patient_id = p.id
+                    LEFT JOIN doctors d ON a.doctor_id = d.id
+                    LEFT JOIN departments dept ON d.department_id = dept.id";
+            
+            if (!empty($where)) {
+                $sql .= " WHERE " . implode(" AND ", $where);
+            }
+            $sql .= " ORDER BY a.appointment_date DESC, a.appointment_time DESC";
+            
+            $appointments = executeQuery($sql, $params);
+            
+            // Generate CSV content
+            $csvContent = "ID,Patient Name,Doctor Name,Department,Appointment Date,Appointment Time,Status,Reason for Visit,Consultation Fee,Notes,Created Date\n";
+            
+            foreach ($appointments as $appointment) {
+                $csvContent .= sprintf('"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
+                    $appointment['id'],
+                    str_replace('"', '""', $appointment['patient_name'] ?? ''),
+                    str_replace('"', '""', $appointment['doctor_name'] ?? ''),
+                    str_replace('"', '""', $appointment['department_name'] ?? ''),
+                    $appointment['appointment_date'] ?? '',
+                    $appointment['appointment_time'] ?? '',
+                    str_replace('"', '""', $appointment['status'] ?? ''),
+                    str_replace('"', '""', $appointment['reason_for_visit'] ?? ''),
+                    $appointment['consultation_fee'] ?? '',
+                    str_replace('"', '""', $appointment['notes'] ?? ''),
+                    $appointment['created_date'] ?? ''
+                );
+            }
+            
+            // Set headers for file download
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="appointments_' . date('Y-m-d_H-i-s') . '.csv"');
+            header('Content-Length: ' . strlen($csvContent));
+            
+            echo $csvContent;
+            exit;
             break;
             
         default:

@@ -64,52 +64,55 @@ try {
             $where = [];
             $params = [];
             
-            if (!empty($input['doctor'])) {
-                $where[] = "mr.doctor_id = ?";
-                $params[] = $input['doctor'];
+            // Handle dropdown filters instead of search
+            if (!empty($input['patient_name'])) {
+                $where[] = "p.name = ?";
+                $params[] = $input['patient_name'];
             }
             
-            if (!empty($input['department'])) {
-                $where[] = "d.department_id = ?";
-                $params[] = $input['department'];
+            if (!empty($input['doctor_name'])) {
+                $where[] = "d.name = ?";
+                $params[] = $input['doctor_name'];
             }
             
-            if (!empty($input['follow_up'])) {
-                $today = date('Y-m-d');
-                switch ($input['follow_up']) {
-                    case 'with_followup':
-                        $where[] = "mr.follow_up_date IS NOT NULL";
-                        break;
-                    case 'without_followup':
-                        $where[] = "mr.follow_up_date IS NULL";
-                        break;
-                    case 'followup_due':
-                        $where[] = "mr.follow_up_date = ?";
-                        $params[] = $today;
-                        break;
-                    case 'followup_overdue':
-                        $where[] = "mr.follow_up_date < ?";
-                        $params[] = $today;
-                        break;
-                }
+            if (!empty($input['department_name'])) {
+                $where[] = "dept.name = ?";
+                $params[] = $input['department_name'];
             }
             
-            if (!empty($input['date_from'])) {
-                $where[] = "mr.visit_date >= ?";
-                $params[] = $input['date_from'];
+            if (!empty($input['diagnosis'])) {
+                $where[] = "mr.diagnosis = ?";
+                $params[] = $input['diagnosis'];
             }
             
-            if (!empty($input['date_to'])) {
-                $where[] = "mr.visit_date <= ?";
-                $params[] = $input['date_to'];
+            if (!empty($input['symptoms'])) {
+                $where[] = "mr.symptoms = ?";
+                $params[] = $input['symptoms'];
             }
             
-            if (!empty($input['search'])) {
-                $where[] = "(p.name LIKE ? OR mr.diagnosis LIKE ? OR mr.symptoms LIKE ?)";
-                $searchTerm = "%{$input['search']}%";
-                $params[] = $searchTerm;
-                $params[] = $searchTerm;
-                $params[] = $searchTerm;
+            if (!empty($input['treatment_plan'])) {
+                $where[] = "mr.treatment_plan = ?";
+                $params[] = $input['treatment_plan'];
+            }
+            
+            if (!empty($input['medication_prescribed'])) {
+                $where[] = "mr.medication_prescribed = ?";
+                $params[] = $input['medication_prescribed'];
+            }
+            
+            if (!empty($input['visit_date'])) {
+                $where[] = "mr.visit_date = ?";
+                $params[] = $input['visit_date'];
+            }
+            
+            if (!empty($input['follow_up_date'])) {
+                $where[] = "mr.follow_up_date = ?";
+                $params[] = $input['follow_up_date'];
+            }
+            
+            if (!empty($input['created_date'])) {
+                $where[] = "DATE(mr.created_at) = ?";
+                $params[] = $input['created_date'];
             }
             
             $sql = "SELECT mr.*, 
@@ -277,6 +280,172 @@ try {
                 'success' => true,
                 'sql_code' => $lastFilterSQL ?: 'No filter applied yet'
             ]);
+            break;
+            
+        case 'get_filter_options':
+            // Get distinct values for filter dropdowns
+            $options = [];
+            
+            // Get distinct patient names
+            $sql = "SELECT DISTINCT p.name FROM medical_records mr 
+                    LEFT JOIN patients p ON mr.patient_id = p.id 
+                    WHERE p.name IS NOT NULL ORDER BY p.name";
+            $options['patient_names'] = array_column(executeQuery($sql), 'name');
+            
+            // Get distinct doctor names
+            $sql = "SELECT DISTINCT d.name FROM medical_records mr 
+                    LEFT JOIN doctors d ON mr.doctor_id = d.id 
+                    WHERE d.name IS NOT NULL ORDER BY d.name";
+            $options['doctor_names'] = array_column(executeQuery($sql), 'name');
+            
+            // Get distinct department names
+            $sql = "SELECT DISTINCT dept.name FROM medical_records mr 
+                    LEFT JOIN doctors d ON mr.doctor_id = d.id 
+                    LEFT JOIN departments dept ON d.department_id = dept.id 
+                    WHERE dept.name IS NOT NULL ORDER BY dept.name";
+            $options['department_names'] = array_column(executeQuery($sql), 'name');
+            
+            // Get distinct diagnoses
+            $sql = "SELECT DISTINCT diagnosis FROM medical_records WHERE diagnosis IS NOT NULL AND diagnosis != '' ORDER BY diagnosis";
+            $options['diagnoses'] = array_column(executeQuery($sql), 'diagnosis');
+            
+            // Get distinct symptoms
+            $sql = "SELECT DISTINCT symptoms FROM medical_records WHERE symptoms IS NOT NULL AND symptoms != '' ORDER BY symptoms";
+            $options['symptoms'] = array_column(executeQuery($sql), 'symptoms');
+            
+            // Get distinct treatment plans
+            $sql = "SELECT DISTINCT treatment_plan FROM medical_records WHERE treatment_plan IS NOT NULL AND treatment_plan != '' ORDER BY treatment_plan";
+            $options['treatment_plans'] = array_column(executeQuery($sql), 'treatment_plan');
+            
+            // Get distinct medications prescribed
+            $sql = "SELECT DISTINCT medication_prescribed FROM medical_records WHERE medication_prescribed IS NOT NULL AND medication_prescribed != '' ORDER BY medication_prescribed";
+            $options['medications_prescribed'] = array_column(executeQuery($sql), 'medication_prescribed');
+            
+            // Get distinct visit dates
+            $sql = "SELECT DISTINCT visit_date FROM medical_records WHERE visit_date IS NOT NULL ORDER BY visit_date DESC";
+            $options['visit_dates'] = array_column(executeQuery($sql), 'visit_date');
+            
+            // Get distinct follow up dates
+            $sql = "SELECT DISTINCT follow_up_date FROM medical_records WHERE follow_up_date IS NOT NULL ORDER BY follow_up_date DESC";
+            $options['follow_up_dates'] = array_column(executeQuery($sql), 'follow_up_date');
+            
+            // Get distinct created dates
+            $sql = "SELECT DISTINCT DATE(created_at) as created_date FROM medical_records WHERE created_at IS NOT NULL ORDER BY created_date DESC";
+            $options['created_dates'] = array_column(executeQuery($sql), 'created_date');
+            
+            echo json_encode([
+                'success' => true,
+                'data' => $options
+            ]);
+            break;
+            
+        case 'export_csv':
+            // Get filtered data for CSV export
+            $where = [];
+            $params = [];
+            
+            // Apply same filters as filter action
+            if (!empty($input['patient_name'])) {
+                $where[] = "p.name = ?";
+                $params[] = $input['patient_name'];
+            }
+            
+            if (!empty($input['doctor_name'])) {
+                $where[] = "d.name = ?";
+                $params[] = $input['doctor_name'];
+            }
+            
+            if (!empty($input['department_name'])) {
+                $where[] = "dept.name = ?";
+                $params[] = $input['department_name'];
+            }
+            
+            if (!empty($input['diagnosis'])) {
+                $where[] = "mr.diagnosis = ?";
+                $params[] = $input['diagnosis'];
+            }
+            
+            if (!empty($input['symptoms'])) {
+                $where[] = "mr.symptoms = ?";
+                $params[] = $input['symptoms'];
+            }
+            
+            if (!empty($input['treatment_plan'])) {
+                $where[] = "mr.treatment_plan = ?";
+                $params[] = $input['treatment_plan'];
+            }
+            
+            if (!empty($input['medication_prescribed'])) {
+                $where[] = "mr.medication_prescribed = ?";
+                $params[] = $input['medication_prescribed'];
+            }
+            
+            if (!empty($input['visit_date'])) {
+                $where[] = "mr.visit_date = ?";
+                $params[] = $input['visit_date'];
+            }
+            
+            if (!empty($input['follow_up_date'])) {
+                $where[] = "mr.follow_up_date = ?";
+                $params[] = $input['follow_up_date'];
+            }
+            
+            if (!empty($input['created_date'])) {
+                $where[] = "DATE(mr.created_at) = ?";
+                $params[] = $input['created_date'];
+            }
+            
+            $sql = "SELECT mr.id,
+                           p.name as patient_name,
+                           d.name as doctor_name,
+                           dept.name as department_name,
+                           mr.diagnosis,
+                           mr.symptoms,
+                           mr.treatment_plan,
+                           mr.medication_prescribed,
+                           mr.visit_date,
+                           mr.follow_up_date,
+                           mr.medical_notes,
+                           DATE(mr.created_at) as created_date
+                    FROM medical_records mr
+                    LEFT JOIN patients p ON mr.patient_id = p.id
+                    LEFT JOIN doctors d ON mr.doctor_id = d.id
+                    LEFT JOIN departments dept ON d.department_id = dept.id";
+            
+            if (!empty($where)) {
+                $sql .= " WHERE " . implode(" AND ", $where);
+            }
+            $sql .= " ORDER BY mr.visit_date DESC";
+            
+            $reports = executeQuery($sql, $params);
+            
+            // Generate CSV content
+            $csvContent = "ID,Patient Name,Doctor Name,Department,Diagnosis,Symptoms,Treatment Plan,Medication Prescribed,Visit Date,Follow-up Date,Medical Notes,Created Date\n";
+            
+            foreach ($reports as $report) {
+                $csvContent .= sprintf('"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
+                    $report['id'],
+                    str_replace('"', '""', $report['patient_name'] ?? ''),
+                    str_replace('"', '""', $report['doctor_name'] ?? ''),
+                    str_replace('"', '""', $report['department_name'] ?? ''),
+                    str_replace('"', '""', $report['diagnosis'] ?? ''),
+                    str_replace('"', '""', $report['symptoms'] ?? ''),
+                    str_replace('"', '""', $report['treatment_plan'] ?? ''),
+                    str_replace('"', '""', $report['medication_prescribed'] ?? ''),
+                    $report['visit_date'] ?? '',
+                    $report['follow_up_date'] ?? '',
+                    str_replace('"', '""', $report['medical_notes'] ?? ''),
+                    $report['created_date'] ?? ''
+                );
+            }
+            
+            // Set headers for file download
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="medical_reports_' . date('Y-m-d_H-i-s') . '.csv"');
+            header('Content-Length: ' . strlen($csvContent));
+            
+            echo $csvContent;
+            exit;
             break;
             
         default:

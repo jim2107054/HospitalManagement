@@ -13,7 +13,7 @@ CREATE TABLE departments (
     head_doctor_id INT,
     contact_number VARCHAR(20),
     location VARCHAR(200) COMMENT 'Physical location in hospital',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at DATE DEFAULT (CURRENT_DATE)
 );
 
 -- Doctors Table
@@ -29,7 +29,7 @@ CREATE TABLE doctors (
     consultation_fee DECIMAL(10,2),
     available_from TIME COMMENT 'Daily availability start time',
     available_to TIME COMMENT 'Daily availability end time',
-    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    joined_at DATE DEFAULT (CURRENT_DATE),
     FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE
 );
 
@@ -46,7 +46,7 @@ CREATE TABLE patients (
     emergency_contact_name VARCHAR(100),
     emergency_contact_phone VARCHAR(15),
     insurance_number VARCHAR(50) UNIQUE,
-    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    registered_at DATE DEFAULT (CURRENT_DATE)
 );
 
 -- Appointments Table
@@ -60,7 +60,7 @@ CREATE TABLE appointments (
     reason_for_visit TEXT,
     consultation_fee DECIMAL(10,2) COMMENT 'Fee charged for this appointment',
     notes TEXT COMMENT 'Additional appointment notes',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at DATE DEFAULT (CURRENT_DATE),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
@@ -79,7 +79,7 @@ CREATE TABLE medical_records (
     visit_date DATE NOT NULL,
     follow_up_date DATE COMMENT 'Next scheduled follow-up',
     medical_notes TEXT COMMENT 'Doctor notes and observations',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at DATE DEFAULT (CURRENT_DATE),
     FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
     FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL

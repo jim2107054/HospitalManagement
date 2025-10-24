@@ -228,14 +228,19 @@
                     <div class="filters-section">
                         <h3>Filter Patients</h3>
                         <div class="filters-grid">
-                            <select id="filter-gender" class="filter-select">
+                            <select id="filter-patient-name" class="filter-select">
+                                <option value="">All Names</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-patient-gender" class="filter-select">
                                 <option value="">All Genders</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                                 <option value="Other">Other</option>
                             </select>
                             
-                            <select id="filter-blood-group" class="filter-select">
+                            <select id="filter-patient-blood-group" class="filter-select">
                                 <option value="">All Blood Groups</option>
                                 <option value="A+">A+</option>
                                 <option value="A-">A-</option>
@@ -247,15 +252,34 @@
                                 <option value="AB-">AB-</option>
                             </select>
                             
-                            <input type="date" id="filter-date-from" class="filter-input" placeholder="Date From">
-                            <input type="date" id="filter-date-to" class="filter-input" placeholder="Date To">
-                            <input type="text" id="filter-search" class="filter-input" placeholder="Search by name, phone, email...">
+                            <select id="filter-patient-phone" class="filter-select">
+                                <option value="">All Phone Numbers</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-patient-email" class="filter-select">
+                                <option value="">All Emails</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-patient-birth-year" class="filter-select">
+                                <option value="">All Birth Years</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-patient-registered-date" class="filter-select">
+                                <option value="">All Registration Dates</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
                             
                             <button class="btn btn-secondary" onclick="applyFilters('patients')">
-                                <i class="fas fa-search"></i> Apply Filters
+                                <i class="fas fa-filter"></i> Apply Filters
                             </button>
                             <button class="btn btn-outline" onclick="clearFilters('patients')">
                                 <i class="fas fa-times"></i> Clear
+                            </button>
+                            <button class="btn btn-success" onclick="exportToCSV('patients')">
+                                <i class="fas fa-download"></i> Export CSV
                             </button>
                         </div>
                         <div class="sql-display" id="patients-sql-display" style="display: none;">
@@ -323,19 +347,44 @@
                     <div class="filters-section">
                         <h3>Filter Departments</h3>
                         <div class="filters-grid">
-                            <input type="text" id="filter-dept-name" class="filter-input" placeholder="Search by department name...">
-                            <input type="text" id="filter-dept-location" class="filter-input" placeholder="Search by location...">
-                            <select id="filter-dept-has-head" class="filter-select">
-                                <option value="">All Departments</option>
-                                <option value="1">With Head Doctor</option>
-                                <option value="0">Without Head Doctor</option>
+                            <select id="filter-dept-name" class="filter-select">
+                                <option value="">All Department Names</option>
+                                <!-- Options will be loaded dynamically -->
                             </select>
-                            <input type="text" id="filter-dept-description" class="filter-input" placeholder="Search in description...">
+                            
+                            <select id="filter-dept-description" class="filter-select">
+                                <option value="">All Descriptions</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-dept-head-doctor" class="filter-select">
+                                <option value="">All Head Doctors</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-dept-contact" class="filter-select">
+                                <option value="">All Contact Numbers</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-dept-location" class="filter-select">
+                                <option value="">All Locations</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-dept-created-date" class="filter-select">
+                                <option value="">All Creation Dates</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
                             <button class="btn btn-secondary" onclick="applyFilters('departments')">
-                                <i class="fas fa-search"></i> Apply Filters
+                                <i class="fas fa-filter"></i> Apply Filters
                             </button>
                             <button class="btn btn-outline" onclick="clearFilters('departments')">
                                 <i class="fas fa-times"></i> Clear
+                            </button>
+                            <button class="btn btn-success" onclick="exportToCSV('departments')">
+                                <i class="fas fa-download"></i> Export CSV
                             </button>
                         </div>
                     </div>
@@ -398,14 +447,31 @@
                     <div class="filters-section">
                         <h3>Filter Doctors</h3>
                         <div class="filters-grid">
-                            <select id="filter-doctor-department" class="filter-select">
-                                <option value="">All Departments</option>
+                            <select id="filter-doctor-name" class="filter-select">
+                                <option value="">All Doctor Names</option>
                                 <!-- Options will be loaded dynamically -->
                             </select>
+                            
                             <select id="filter-doctor-specialization" class="filter-select">
                                 <option value="">All Specializations</option>
                                 <!-- Options will be loaded dynamically -->
                             </select>
+                            
+                            <select id="filter-doctor-department" class="filter-select">
+                                <option value="">All Departments</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-doctor-phone" class="filter-select">
+                                <option value="">All Phone Numbers</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-doctor-email" class="filter-select">
+                                <option value="">All Emails</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
                             <select id="filter-doctor-experience" class="filter-select">
                                 <option value="">All Experience Levels</option>
                                 <option value="0-5">0-5 years</option>
@@ -413,17 +479,25 @@
                                 <option value="11-15">11-15 years</option>
                                 <option value="16+">16+ years</option>
                             </select>
-                            <select id="filter-doctor-availability" class="filter-select">
-                                <option value="">All Doctors</option>
-                                <option value="available">Available Today</option>
-                                <option value="busy">Busy Today</option>
+                            
+                            <select id="filter-doctor-fee" class="filter-select">
+                                <option value="">All Consultation Fees</option>
+                                <!-- Options will be loaded dynamically -->
                             </select>
-                            <input type="text" id="filter-doctor-search" class="filter-input" placeholder="Search by name, email, license...">
+                            
+                            <select id="filter-doctor-availability" class="filter-select">
+                                <option value="">All Availability</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
                             <button class="btn btn-secondary" onclick="applyFilters('doctors')">
-                                <i class="fas fa-search"></i> Apply Filters
+                                <i class="fas fa-filter"></i> Apply Filters
                             </button>
                             <button class="btn btn-outline" onclick="clearFilters('doctors')">
                                 <i class="fas fa-times"></i> Clear
+                            </button>
+                            <button class="btn btn-success" onclick="exportToCSV('doctors')">
+                                <i class="fas fa-download"></i> Export CSV
                             </button>
                         </div>
                     </div>
@@ -491,6 +565,31 @@
                     <div class="filters-section">
                         <h3>Filter Appointments</h3>
                         <div class="filters-grid">
+                            <select id="filter-appointment-patient" class="filter-select">
+                                <option value="">All Patients</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-appointment-doctor" class="filter-select">
+                                <option value="">All Doctors</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-appointment-department" class="filter-select">
+                                <option value="">All Departments</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-appointment-date" class="filter-select">
+                                <option value="">All Appointment Dates</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-appointment-time" class="filter-select">
+                                <option value="">All Appointment Times</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
                             <select id="filter-appointment-status" class="filter-select">
                                 <option value="">All Status</option>
                                 <option value="Scheduled">Scheduled</option>
@@ -498,22 +597,25 @@
                                 <option value="Cancelled">Cancelled</option>
                                 <option value="No-Show">No-Show</option>
                             </select>
-                            <select id="filter-appointment-doctor" class="filter-select">
-                                <option value="">All Doctors</option>
+                            
+                            <select id="filter-appointment-reason" class="filter-select">
+                                <option value="">All Reasons</option>
                                 <!-- Options will be loaded dynamically -->
                             </select>
-                            <select id="filter-appointment-department" class="filter-select">
-                                <option value="">All Departments</option>
+                            
+                            <select id="filter-appointment-fee" class="filter-select">
+                                <option value="">All Consultation Fees</option>
                                 <!-- Options will be loaded dynamically -->
                             </select>
-                            <input type="date" id="filter-appointment-date-from" class="filter-input" placeholder="Date From">
-                            <input type="date" id="filter-appointment-date-to" class="filter-input" placeholder="Date To">
-                            <input type="text" id="filter-appointment-search" class="filter-input" placeholder="Search patient, doctor, reason...">
+                            
                             <button class="btn btn-secondary" onclick="applyFilters('appointments')">
-                                <i class="fas fa-search"></i> Apply Filters
+                                <i class="fas fa-filter"></i> Apply Filters
                             </button>
                             <button class="btn btn-outline" onclick="clearFilters('appointments')">
                                 <i class="fas fa-times"></i> Clear
+                            </button>
+                            <button class="btn btn-success" onclick="exportToCSV('appointments')">
+                                <i class="fas fa-download"></i> Export CSV
                             </button>
                         </div>
                     </div>
@@ -581,29 +683,52 @@
                     <div class="filters-section">
                         <h3>Filter Medical Reports</h3>
                         <div class="filters-grid">
+                            <select id="filter-report-patient" class="filter-select">
+                                <option value="">All Patients</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
                             <select id="filter-report-doctor" class="filter-select">
                                 <option value="">All Doctors</option>
                                 <!-- Options will be loaded dynamically -->
                             </select>
+                            
                             <select id="filter-report-department" class="filter-select">
                                 <option value="">All Departments</option>
                                 <!-- Options will be loaded dynamically -->
                             </select>
+                            
+                            <select id="filter-report-visit-date" class="filter-select">
+                                <option value="">All Visit Dates</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-report-diagnosis" class="filter-select">
+                                <option value="">All Diagnoses</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
+                            <select id="filter-report-treatment" class="filter-select">
+                                <option value="">All Treatments</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                            
                             <select id="filter-report-follow-up" class="filter-select">
-                                <option value="">All Reports</option>
+                                <option value="">All Follow-up Status</option>
                                 <option value="with_followup">With Follow-up</option>
                                 <option value="without_followup">Without Follow-up</option>
                                 <option value="followup_due">Follow-up Due</option>
                                 <option value="followup_overdue">Follow-up Overdue</option>
                             </select>
-                            <input type="date" id="filter-report-date-from" class="filter-input" placeholder="Visit Date From">
-                            <input type="date" id="filter-report-date-to" class="filter-input" placeholder="Visit Date To">
-                            <input type="text" id="filter-report-search" class="filter-input" placeholder="Search patient, diagnosis, symptoms...">
+                            
                             <button class="btn btn-secondary" onclick="applyFilters('medical-reports')">
-                                <i class="fas fa-search"></i> Apply Filters
+                                <i class="fas fa-filter"></i> Apply Filters
                             </button>
                             <button class="btn btn-outline" onclick="clearFilters('medical-reports')">
                                 <i class="fas fa-times"></i> Clear
+                            </button>
+                            <button class="btn btn-success" onclick="exportToCSV('medical-reports')">
+                                <i class="fas fa-download"></i> Export CSV
                             </button>
                         </div>
                     </div>
