@@ -637,22 +637,25 @@ class HospitalDashboard {
                 filters.sort_order = document.getElementById('sort-doctor-order')?.value || 'ASC';
                 break;
             case 'appointments':
-                filters.patient_name = document.getElementById('filter-appointment-patient')?.value || '';
-                filters.doctor_name = document.getElementById('filter-appointment-doctor')?.value || '';
-                filters.department_name = document.getElementById('filter-appointment-department')?.value || '';
-                filters.date_from = document.getElementById('filter-appointment-date-from')?.value || '';
-                filters.date_to = document.getElementById('filter-appointment-date-to')?.value || '';
+                filters.patient = document.getElementById('filter-appointment-patient')?.value || '';
+                filters.doctor = document.getElementById('filter-appointment-doctor')?.value || '';
+                filters.department = document.getElementById('filter-appointment-department')?.value || '';
+                filters.date = document.getElementById('filter-appointment-date')?.value || '';
+                filters.time = document.getElementById('filter-appointment-time')?.value || '';
                 filters.status = document.getElementById('filter-appointment-status')?.value || '';
+                filters.reason = document.getElementById('filter-appointment-reason')?.value || '';
+                filters.fee = document.getElementById('filter-appointment-fee')?.value || '';
                 filters.sort_by = document.getElementById('sort-appointment-by')?.value || 'appointment_date';
                 filters.sort_order = document.getElementById('sort-appointment-order')?.value || 'DESC';
                 break;
             case 'medical-reports':
-                filters.patient_name = document.getElementById('filter-report-patient')?.value || '';
-                filters.doctor_name = document.getElementById('filter-report-doctor')?.value || '';
-                filters.department_name = document.getElementById('filter-report-department')?.value || '';
-                filters.date_from = document.getElementById('filter-report-date-from')?.value || '';
-                filters.date_to = document.getElementById('filter-report-date-to')?.value || '';
-                filters.follow_up_status = document.getElementById('filter-report-follow-up')?.value || '';
+                filters.patient = document.getElementById('filter-report-patient')?.value || '';
+                filters.doctor = document.getElementById('filter-report-doctor')?.value || '';
+                filters.department = document.getElementById('filter-report-department')?.value || '';
+                filters.visit_date = document.getElementById('filter-report-visit-date')?.value || '';
+                filters.diagnosis = document.getElementById('filter-report-diagnosis')?.value || '';
+                filters.treatment = document.getElementById('filter-report-treatment')?.value || '';
+                filters.follow_up = document.getElementById('filter-report-follow-up')?.value || '';
                 filters.sort_by = document.getElementById('sort-report-by')?.value || 'visit_date';
                 filters.sort_order = document.getElementById('sort-report-order')?.value || 'DESC';
                 break;
@@ -710,14 +713,16 @@ class HospitalDashboard {
                 this.populateSelectOptions('filter-doctor-fee', options.consultation_fees || []);
                 break;
             case 'appointments':
-                this.populateSelectOptions('filter-appointment-patient', options.patient_names || []);
-                this.populateSelectOptions('filter-appointment-doctor', options.doctor_names || []);
-                this.populateSelectOptions('filter-appointment-department', options.department_names || []);
+                this.populateSelectOptions('filter-appointment-patient', options.patients || []);
+                this.populateSelectOptions('filter-appointment-doctor', options.doctors || []);
+                this.populateSelectOptions('filter-appointment-date', options.appointment_dates || []);
+                this.populateSelectOptions('filter-appointment-status', options.statuses || []);
                 break;
             case 'medical-reports':
-                this.populateSelectOptions('filter-report-patient', options.patient_names || []);
-                this.populateSelectOptions('filter-report-doctor', options.doctor_names || []);
-                this.populateSelectOptions('filter-report-department', options.department_names || []);
+                this.populateSelectOptions('filter-report-patient', options.patients || []);
+                this.populateSelectOptions('filter-report-doctor', options.doctors || []);
+                this.populateSelectOptions('filter-report-visit-date', options.visit_dates || []);
+                this.populateSelectOptions('filter-report-diagnosis', options.diagnoses || []);
                 break;
         }
     }

@@ -29,7 +29,23 @@ try {
     
     switch ($action) {
         case 'list':
-            $sql = "SELECT * FROM patients ORDER BY name ASC";
+            // Get sorting parameters
+            $sort_by = $_GET['sort_by'] ?? 'name';
+            $sort_order = $_GET['sort_order'] ?? 'ASC';
+            
+            // Validate sort_by to prevent SQL injection
+            $allowed_sort_fields = ['id', 'name', 'date_of_birth', 'gender', 'blood_group', 'phone', 'email', 'registered_at'];
+            if (!in_array($sort_by, $allowed_sort_fields)) {
+                $sort_by = 'name';
+            }
+            
+            // Validate sort_order
+            $sort_order = strtoupper($sort_order);
+            if (!in_array($sort_order, ['ASC', 'DESC'])) {
+                $sort_order = 'ASC';
+            }
+            
+            $sql = "SELECT * FROM patients ORDER BY {$sort_by} {$sort_order}";
             $patients = executeQuery($sql);
             
             // Get statistics
@@ -43,7 +59,9 @@ try {
             echo json_encode([
                 'success' => true,
                 'patients' => $patients,
-                'stats' => $stats
+                'stats' => $stats,
+                'sort_by' => $sort_by,
+                'sort_order' => $sort_order
             ]);
             break;
             
@@ -86,11 +104,27 @@ try {
                 $params[] = $input['registered_date'];
             }
             
+            // Get sorting parameters
+            $sort_by = $input['sort_by'] ?? 'name';
+            $sort_order = $input['sort_order'] ?? 'ASC';
+            
+            // Validate sort_by to prevent SQL injection
+            $allowed_sort_fields = ['id', 'name', 'date_of_birth', 'gender', 'blood_group', 'phone', 'email', 'registered_at'];
+            if (!in_array($sort_by, $allowed_sort_fields)) {
+                $sort_by = 'name';
+            }
+            
+            // Validate sort_order
+            $sort_order = strtoupper($sort_order);
+            if (!in_array($sort_order, ['ASC', 'DESC'])) {
+                $sort_order = 'ASC';
+            }
+            
             $sql = "SELECT * FROM patients";
             if (!empty($where)) {
                 $sql .= " WHERE " . implode(" AND ", $where);
             }
-            $sql .= " ORDER BY name ASC";
+            $sql .= " ORDER BY {$sort_by} {$sort_order}";
             
             // Store the SQL for code display
             $lastFilterSQL = $sql . " -- Parameters: " . json_encode($params);
@@ -100,7 +134,9 @@ try {
             echo json_encode([
                 'success' => true,
                 'data' => $patients,
-                'sql_code' => $lastFilterSQL
+                'sql_code' => $lastFilterSQL,
+                'sort_by' => $sort_by,
+                'sort_order' => $sort_order
             ]);
             break;
             

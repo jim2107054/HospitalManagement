@@ -64,7 +64,7 @@ try {
             $where = [];
             $params = [];
             
-            // Handle dropdown filters instead of search
+            // Handle dropdown filters
             if (!empty($input['patient_name'])) {
                 $where[] = "p.name = ?";
                 $params[] = $input['patient_name'];
@@ -80,39 +80,36 @@ try {
                 $params[] = $input['department_name'];
             }
             
-            if (!empty($input['diagnosis'])) {
-                $where[] = "mr.diagnosis = ?";
-                $params[] = $input['diagnosis'];
+            // Handle date range
+            if (!empty($input['date_from'])) {
+                $where[] = "mr.visit_date >= ?";
+                $params[] = $input['date_from'];
             }
             
-            if (!empty($input['symptoms'])) {
-                $where[] = "mr.symptoms = ?";
-                $params[] = $input['symptoms'];
+            if (!empty($input['date_to'])) {
+                $where[] = "mr.visit_date <= ?";
+                $params[] = $input['date_to'];
             }
             
-            if (!empty($input['treatment_plan'])) {
-                $where[] = "mr.treatment_plan = ?";
-                $params[] = $input['treatment_plan'];
-            }
-            
-            if (!empty($input['medication_prescribed'])) {
-                $where[] = "mr.medication_prescribed = ?";
-                $params[] = $input['medication_prescribed'];
-            }
-            
-            if (!empty($input['visit_date'])) {
-                $where[] = "mr.visit_date = ?";
-                $params[] = $input['visit_date'];
-            }
-            
-            if (!empty($input['follow_up_date'])) {
-                $where[] = "mr.follow_up_date = ?";
-                $params[] = $input['follow_up_date'];
-            }
-            
-            if (!empty($input['created_date'])) {
-                $where[] = "DATE(mr.created_at) = ?";
-                $params[] = $input['created_date'];
+            // Handle follow-up status filter
+            if (!empty($input['follow_up_status'])) {
+                $today = date('Y-m-d');
+                switch ($input['follow_up_status']) {
+                    case 'with_followup':
+                        $where[] = "mr.follow_up_date IS NOT NULL";
+                        break;
+                    case 'without_followup':
+                        $where[] = "mr.follow_up_date IS NULL";
+                        break;
+                    case 'followup_due':
+                        $where[] = "mr.follow_up_date >= ?";
+                        $params[] = $today;
+                        break;
+                    case 'followup_overdue':
+                        $where[] = "mr.follow_up_date < ?";
+                        $params[] = $today;
+                        break;
+                }
             }
             
             $sql = "SELECT mr.*, 
@@ -127,7 +124,37 @@ try {
             if (!empty($where)) {
                 $sql .= " WHERE " . implode(" AND ", $where);
             }
-            $sql .= " ORDER BY mr.visit_date DESC";
+            
+            // Handle sorting with whitelist validation
+            $sort_by = $input['sort_by'] ?? 'visit_date';
+            $sort_order = strtoupper($input['sort_order'] ?? 'DESC');
+            
+            // Whitelist for allowed sort columns
+            $allowed_sort = ['visit_date', 'patient_name', 'doctor_name', 'follow_up_date'];
+            if (!in_array($sort_by, $allowed_sort)) {
+                $sort_by = 'visit_date';
+            }
+            
+            // Validate sort order
+            if (!in_array($sort_order, ['ASC', 'DESC'])) {
+                $sort_order = 'DESC';
+            }
+            
+            // Map sort_by to actual column names if needed
+            $sort_column_map = [
+                'patient_name' => 'p.name',
+                'doctor_name' => 'd.name',
+                'visit_date' => 'mr.visit_date',
+                'follow_up_date' => 'mr.follow_up_date'
+            ];
+            
+            $sort_column = $sort_column_map[$sort_by] ?? 'mr.visit_date';
+            $sql .= " ORDER BY {$sort_column} {$sort_order}";
+            
+            // Add secondary sort for consistency
+            if ($sort_by !== 'visit_date') {
+                $sql .= ", mr.visit_date DESC";
+            }
             
             // Store the SQL for code display
             $lastFilterSQL = $sql . " -- Parameters: " . json_encode($params);

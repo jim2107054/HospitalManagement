@@ -1,5 +1,5 @@
-// Hospital Management Dashboard - Main JavaScript (REFACTORED - NO CLIENT-SIDE FILTERING/SORTING)
-console.log('main.js: Script loaded - REFACTORED VERSION');
+// Hospital Management Dashboard - Main JavaScript
+console.log('main.js: Script loaded');
 
 class HospitalDashboard {
     constructor() {
@@ -16,9 +16,7 @@ class HospitalDashboard {
         };
         
         this.init();
-    }
-
-    init() {
+    }    init() {
         this.setupEventListeners();
         
         // Wait a bit for Chart.js and charts.js to load, then load data
@@ -49,23 +47,6 @@ class HospitalDashboard {
                 this.closeCrudModal();
             }
         });
-        
-        // Setup form submit handlers for all filter forms
-        this.setupFilterFormHandlers();
-    }
-    
-    setupFilterFormHandlers() {
-        // Patients filter form
-        const patientsForm = document.getElementById('patients-filter-form');
-        if (patientsForm) {
-            patientsForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.applyFilters('patients');
-            });
-        }
-        
-        // Add similar handlers for other modules when ready
-        // This will be set up when those pages are loaded
     }
 
     switchPage(page) {
@@ -144,6 +125,7 @@ class HospitalDashboard {
             console.log('Fetching overview data from php/overview.php');
             const response = await fetch('php/overview.php');
             
+            // Check if response is ok
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -151,6 +133,7 @@ class HospitalDashboard {
             const text = await response.text();
             console.log('Overview API response text:', text);
             
+            // Try to parse as JSON
             let data;
             try {
                 data = JSON.parse(text);
@@ -184,6 +167,7 @@ class HospitalDashboard {
                 console.log('Overview data loading completed');
             } else {
                 console.warn('API returned success: false', data);
+                // Set default values
                 this.setDefaultOverviewStats();
             }
         } catch (error) {
@@ -230,13 +214,17 @@ class HospitalDashboard {
                 document.getElementById('patients-female').textContent = data.stats?.female || 0;
                 document.getElementById('patients-today').textContent = data.stats?.today || 0;
 
-                // Update patients table (data is already filtered and sorted by PHP)
+                // Update patients table
                 this.updatePatientsTable(data.patients);
                 
                 // Load filter options
                 await this.loadFilterOptions('patients');
+                
+                // Apply empty filters to show all data and generate SQL
+                await this.applyFilters('patients');
             } else {
                 console.warn('Patients API returned invalid data:', data);
+                // Set default values
                 document.getElementById('patients-total').textContent = '0';
                 document.getElementById('patients-male').textContent = '0';
                 document.getElementById('patients-female').textContent = '0';
@@ -260,11 +248,17 @@ class HospitalDashboard {
                 document.getElementById('departments-doctors').textContent = data.stats.doctors || 0;
                 document.getElementById('departments-active').textContent = data.stats.total || 0;
 
-                // Update departments table (data is already sorted by PHP)
+                // Update departments table
                 this.updateTable('departments', data.data);
+                
+                // Load dropdown options for other filters
+                this.loadDepartmentDropdowns(data.data);
                 
                 // Load filter options
                 await this.loadFilterOptions('departments');
+                
+                // Apply empty filters to show all data and generate SQL
+                await this.applyFilters('departments');
             }
         } catch (error) {
             console.error('Error loading departments data:', error);
@@ -283,11 +277,17 @@ class HospitalDashboard {
                 document.getElementById('doctors-specializations').textContent = data.stats.specializations || 0;
                 document.getElementById('doctors-appointments-today').textContent = data.stats.appointments_today || 0;
 
-                // Update doctors table (data is already sorted by PHP)
+                // Update doctors table
                 this.updateTable('doctors', data.data);
+                
+                // Load dropdown options
+                this.loadDoctorDropdowns(data.data);
                 
                 // Load filter options
                 await this.loadFilterOptions('doctors');
+                
+                // Apply empty filters to show all data and generate SQL
+                await this.applyFilters('doctors');
             }
         } catch (error) {
             console.error('Error loading doctors data:', error);
@@ -307,11 +307,17 @@ class HospitalDashboard {
                 document.getElementById('appointments-completed').textContent = data.stats.completed || 0;
                 document.getElementById('appointments-upcoming').textContent = data.stats.upcoming || 0;
 
-                // Update appointments table (data is already sorted by PHP)
+                // Update appointments table
                 this.updateTable('appointments', data.data);
+                
+                // Load dropdown options
+                this.loadAppointmentDropdowns();
                 
                 // Load filter options
                 await this.loadFilterOptions('appointments');
+                
+                // Apply empty filters to show all data and generate SQL
+                await this.applyFilters('appointments');
             }
         } catch (error) {
             console.error('Error loading appointments data:', error);
@@ -331,14 +337,328 @@ class HospitalDashboard {
                 document.getElementById('reports-follow-ups').textContent = data.stats.follow_ups || 0;
                 document.getElementById('reports-unique-patients').textContent = data.stats.unique_patients || 0;
 
-                // Update medical reports table (data is already sorted by PHP)
+                // Update medical reports table
                 this.updateTable('medical-reports', data.data);
+                
+                // Load dropdown options
+                this.loadMedicalReportDropdowns();
                 
                 // Load filter options
                 await this.loadFilterOptions('medical-reports');
+                
+                // Apply empty filters to show all data and generate SQL
+                await this.applyFilters('medical-reports');
             }
         } catch (error) {
             console.error('Error loading medical reports data:', error);
+        }
+    }
+
+    async loadDepartmentsPage() {
+        const departmentsPage = document.getElementById('departments-page');
+        departmentsPage.innerHTML = `
+            <div class="page-header">
+                <h2>Departments Management</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="dashboard.openCrudModal('departments', 'create')">
+                        <i class="fas fa-plus"></i> Add Department
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <h3 id="departments-total">0</h3>
+                    <p>Total Departments</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="departments-with-head">0</h3>
+                    <p>With Head Doctor</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="departments-doctors">0</h3>
+                    <p>Total Doctors</p>
+                </div>
+            </div>
+
+            <div class="filters-section">
+                <h3>Filter Departments</h3>
+                <div class="filters-grid">
+                    <input type="text" id="filter-dept-search" class="filter-input" placeholder="Search by name or location...">
+                    <button class="btn btn-secondary" onclick="dashboard.applyFilters('departments')">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                    <button class="btn btn-outline" onclick="dashboard.clearFilters('departments')">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="departments-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Head Doctor</th>
+                            <th>Contact</th>
+                            <th>Location</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="departments-table-body">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    async loadDoctorsPage() {
+        const doctorsPage = document.getElementById('doctors-page');
+        doctorsPage.innerHTML = `
+            <div class="page-header">
+                <h2>Doctors Management</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="dashboard.openCrudModal('doctors', 'create')">
+                        <i class="fas fa-plus"></i> Add Doctor
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <h3 id="doctors-total">0</h3>
+                    <p>Total Doctors</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="doctors-available">0</h3>
+                    <p>Available Today</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="doctors-specializations">0</h3>
+                    <p>Specializations</p>
+                </div>
+            </div>
+
+            <div class="filters-section">
+                <h3>Filter Doctors</h3>
+                <div class="filters-grid">
+                    <select id="filter-department" class="filter-select">
+                        <option value="">All Departments</option>
+                    </select>
+                    <select id="filter-specialization" class="filter-select">
+                        <option value="">All Specializations</option>
+                    </select>
+                    <input type="text" id="filter-doctor-search" class="filter-input" placeholder="Search by name, email...">
+                    <button class="btn btn-secondary" onclick="dashboard.applyFilters('doctors')">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                    <button class="btn btn-outline" onclick="dashboard.clearFilters('doctors')">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="doctors-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Specialization</th>
+                            <th>Department</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Experience</th>
+                            <th>Fee</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="doctors-table-body">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    async loadAppointmentsPage() {
+        const appointmentsPage = document.getElementById('appointments-page');
+        appointmentsPage.innerHTML = `
+            <div class="page-header">
+                <h2>Appointments Management</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="dashboard.openCrudModal('appointments', 'create')">
+                        <i class="fas fa-plus"></i> Add Appointment
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <h3 id="appointments-total">0</h3>
+                    <p>Total Appointments</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="appointments-today">0</h3>
+                    <p>Today's Appointments</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="appointments-scheduled">0</h3>
+                    <p>Scheduled</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="appointments-completed">0</h3>
+                    <p>Completed</p>
+                </div>
+            </div>
+
+            <div class="filters-section">
+                <h3>Filter Appointments</h3>
+                <div class="filters-grid">
+                    <select id="filter-appointment-status" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="No-Show">No-Show</option>
+                    </select>
+                    <input type="date" id="filter-appointment-date" class="filter-input">
+                    <input type="text" id="filter-appointment-search" class="filter-input" placeholder="Search patient or doctor...">
+                    <button class="btn btn-secondary" onclick="dashboard.applyFilters('appointments')">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                    <button class="btn btn-outline" onclick="dashboard.clearFilters('appointments')">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="appointments-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Reason</th>
+                            <th>Fee</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointments-table-body">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    async loadMedicalReportsPage() {
+        const medicalReportsPage = document.getElementById('medical-reports-page');
+        medicalReportsPage.innerHTML = `
+            <div class="page-header">
+                <h2>Medical Reports Management</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="dashboard.openCrudModal('medical-reports', 'create')">
+                        <i class="fas fa-plus"></i> Add Medical Report
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <h3 id="reports-total">0</h3>
+                    <p>Total Reports</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="reports-today">0</h3>
+                    <p>Today's Reports</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="reports-follow-ups">0</h3>
+                    <p>Follow-ups Due</p>
+                </div>
+            </div>
+
+            <div class="filters-section">
+                <h3>Filter Medical Reports</h3>
+                <div class="filters-grid">
+                    <input type="date" id="filter-report-date-from" class="filter-input" placeholder="Date From">
+                    <input type="date" id="filter-report-date-to" class="filter-input" placeholder="Date To">
+                    <input type="text" id="filter-report-search" class="filter-input" placeholder="Search patient, doctor, diagnosis...">
+                    <button class="btn btn-secondary" onclick="dashboard.applyFilters('medical-reports')">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                    <button class="btn btn-outline" onclick="dashboard.clearFilters('medical-reports')">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="medical-reports-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Visit Date</th>
+                            <th>Diagnosis</th>
+                            <th>Treatment</th>
+                            <th>Follow-up</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medical-reports-table-body">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    async loadDataTable(type) {
+        try {
+            const response = await fetch(`php/${type}.php?action=list`);
+            
+            // Check if response is ok
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const text = await response.text();
+            console.log(`${type} API response:`, text);
+            
+            // Try to parse as JSON
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error(`Failed to parse JSON for ${type}:`, text);
+                throw new Error(`Invalid JSON response from ${type} API`);
+            }
+
+            if (data.success && Array.isArray(data.data)) {
+                this.updateTable(type, data.data);
+                if (data.stats) {
+                    this.updateStats(type, data.stats);
+                }
+            } else {
+                console.warn(`${type} API returned invalid data:`, data);
+                // Set empty table
+                this.updateTable(type, []);
+            }
+        } catch (error) {
+            console.error(`Error loading ${type} data:`, error);
+            // Set empty table on error
+            this.updateTable(type, []);
         }
     }
 
@@ -360,7 +680,6 @@ class HospitalDashboard {
             return;
         }
 
-        // Display data exactly as returned from PHP (already filtered and sorted)
         tbody.innerHTML = patients.map(patient => `
             <tr>
                 <td>${patient.id}</td>
@@ -395,6 +714,7 @@ class HospitalDashboard {
             return;
         }
 
+        // Handle empty or invalid data
         if (!data || !Array.isArray(data)) {
             console.warn(`Invalid data for ${type} table:`, data);
             tbody.innerHTML = '<tr><td colspan="100%" class="text-center">No data available</td></tr>';
@@ -406,7 +726,6 @@ class HospitalDashboard {
         if (data.length === 0) {
             html = '<tr><td colspan="100%" class="text-center">No records found</td></tr>';
         } else {
-            // Display data exactly as returned from PHP (already filtered and sorted)
             data.forEach(item => {
                 switch (type) {
                     case 'departments':
@@ -561,7 +880,6 @@ class HospitalDashboard {
         });
     }
 
-    // REFACTORED: This now ONLY sends form data to PHP, no client-side processing
     async applyFilters(type) {
         this.showLoading();
         try {
@@ -579,14 +897,14 @@ class HospitalDashboard {
 
             const data = await response.json();
             if (data.success) {
-                // Update table with PHP-filtered and sorted data
+                // Update table based on type
                 if (type === 'patients') {
                     this.updatePatientsTable(data.data);
                 } else {
                     this.updateTable(type, data.data);
                 }
                 
-                // Store SQL code for display
+                // Show SQL display button and store SQL code
                 if (data.sql_code) {
                     this.lastSQLQueries[type] = data.sql_code;
                     console.log(`Stored SQL for ${type}:`, data.sql_code);
@@ -599,7 +917,30 @@ class HospitalDashboard {
         }
     }
 
-    // Get filter values from form inputs (NO PROCESSING - just collection)
+    showSQLDisplay(type) {
+        const sqlDisplay = document.getElementById(`${type}-sql-display`);
+        if (sqlDisplay) {
+            sqlDisplay.style.display = 'block';
+        }
+    }
+
+    storeSQLCode(type, sqlCode) {
+        // Store SQL code for later display
+        if (!window.sqlCodes) {
+            window.sqlCodes = {};
+        }
+        window.sqlCodes[type] = sqlCode;
+    }
+
+    showSQLCode(type) {
+        if (window.sqlCodes && window.sqlCodes[type]) {
+            document.getElementById('sql-code-display').textContent = window.sqlCodes[type];
+            document.getElementById('sql-modal').style.display = 'block';
+        } else {
+            alert('No SQL code available. Please apply filters first.');
+        }
+    }
+
     getFilters(type) {
         const filters = {};
         
@@ -612,8 +953,6 @@ class HospitalDashboard {
                 filters.email = document.getElementById('filter-patient-email')?.value || '';
                 filters.birth_year = document.getElementById('filter-patient-birth-year')?.value || '';
                 filters.registered_date = document.getElementById('filter-patient-registered-date')?.value || '';
-                filters.sort_by = document.getElementById('sort-patient-by')?.value || 'name';
-                filters.sort_order = document.getElementById('sort-patient-order')?.value || 'ASC';
                 break;
             case 'departments':
                 filters.name = document.getElementById('filter-dept-name')?.value || '';
@@ -621,8 +960,6 @@ class HospitalDashboard {
                 filters.contact_number = document.getElementById('filter-dept-contact')?.value || '';
                 filters.head_doctor_name = document.getElementById('filter-dept-head-doctor')?.value || '';
                 filters.created_date = document.getElementById('filter-dept-created-date')?.value || '';
-                filters.sort_by = document.getElementById('sort-dept-by')?.value || 'name';
-                filters.sort_order = document.getElementById('sort-dept-order')?.value || 'ASC';
                 break;
             case 'doctors':
                 filters.name = document.getElementById('filter-doctor-name')?.value || '';
@@ -633,28 +970,25 @@ class HospitalDashboard {
                 filters.experience = document.getElementById('filter-doctor-experience')?.value || '';
                 filters.fee = document.getElementById('filter-doctor-fee')?.value || '';
                 filters.availability = document.getElementById('filter-doctor-availability')?.value || '';
-                filters.sort_by = document.getElementById('sort-doctor-by')?.value || 'name';
-                filters.sort_order = document.getElementById('sort-doctor-order')?.value || 'ASC';
                 break;
             case 'appointments':
-                filters.patient_name = document.getElementById('filter-appointment-patient')?.value || '';
-                filters.doctor_name = document.getElementById('filter-appointment-doctor')?.value || '';
-                filters.department_name = document.getElementById('filter-appointment-department')?.value || '';
-                filters.date_from = document.getElementById('filter-appointment-date-from')?.value || '';
-                filters.date_to = document.getElementById('filter-appointment-date-to')?.value || '';
+                filters.patient = document.getElementById('filter-appointment-patient')?.value || '';
+                filters.doctor = document.getElementById('filter-appointment-doctor')?.value || '';
+                filters.department = document.getElementById('filter-appointment-department')?.value || '';
+                filters.date = document.getElementById('filter-appointment-date')?.value || '';
+                filters.time = document.getElementById('filter-appointment-time')?.value || '';
                 filters.status = document.getElementById('filter-appointment-status')?.value || '';
-                filters.sort_by = document.getElementById('sort-appointment-by')?.value || 'appointment_date';
-                filters.sort_order = document.getElementById('sort-appointment-order')?.value || 'DESC';
+                filters.reason = document.getElementById('filter-appointment-reason')?.value || '';
+                filters.fee = document.getElementById('filter-appointment-fee')?.value || '';
                 break;
             case 'medical-reports':
-                filters.patient_name = document.getElementById('filter-report-patient')?.value || '';
-                filters.doctor_name = document.getElementById('filter-report-doctor')?.value || '';
-                filters.department_name = document.getElementById('filter-report-department')?.value || '';
-                filters.date_from = document.getElementById('filter-report-date-from')?.value || '';
-                filters.date_to = document.getElementById('filter-report-date-to')?.value || '';
-                filters.follow_up_status = document.getElementById('filter-report-follow-up')?.value || '';
-                filters.sort_by = document.getElementById('sort-report-by')?.value || 'visit_date';
-                filters.sort_order = document.getElementById('sort-report-order')?.value || 'DESC';
+                filters.patient = document.getElementById('filter-report-patient')?.value || '';
+                filters.doctor = document.getElementById('filter-report-doctor')?.value || '';
+                filters.department = document.getElementById('filter-report-department')?.value || '';
+                filters.visit_date = document.getElementById('filter-report-visit-date')?.value || '';
+                filters.diagnosis = document.getElementById('filter-report-diagnosis')?.value || '';
+                filters.treatment = document.getElementById('filter-report-treatment')?.value || '';
+                filters.follow_up = document.getElementById('filter-report-follow-up')?.value || '';
                 break;
         }
         
@@ -662,13 +996,55 @@ class HospitalDashboard {
     }
 
     clearFilters(type) {
-        const form = document.querySelector(`#${type}-page form`);
-        if (form) {
-            form.reset();
+        switch (type) {
+            case 'patients':
+                document.getElementById('filter-patient-name').value = '';
+                document.getElementById('filter-patient-gender').value = '';
+                document.getElementById('filter-patient-blood-group').value = '';
+                document.getElementById('filter-patient-phone').value = '';
+                document.getElementById('filter-patient-email').value = '';
+                document.getElementById('filter-patient-birth-year').value = '';
+                document.getElementById('filter-patient-registered-date').value = '';
+                break;
+            case 'departments':
+                document.getElementById('filter-dept-name').value = '';
+                document.getElementById('filter-dept-location').value = '';
+                document.getElementById('filter-dept-contact').value = '';
+                document.getElementById('filter-dept-head-doctor').value = '';
+                document.getElementById('filter-dept-created-date').value = '';
+                break;
+            case 'doctors':
+                document.getElementById('filter-doctor-name').value = '';
+                document.getElementById('filter-doctor-specialization').value = '';
+                document.getElementById('filter-doctor-department').value = '';
+                document.getElementById('filter-doctor-phone').value = '';
+                document.getElementById('filter-doctor-email').value = '';
+                document.getElementById('filter-doctor-experience').value = '';
+                document.getElementById('filter-doctor-fee').value = '';
+                document.getElementById('filter-doctor-availability').value = '';
+                break;
+            case 'appointments':
+                document.getElementById('filter-appointment-patient').value = '';
+                document.getElementById('filter-appointment-doctor').value = '';
+                document.getElementById('filter-appointment-department').value = '';
+                document.getElementById('filter-appointment-date').value = '';
+                document.getElementById('filter-appointment-time').value = '';
+                document.getElementById('filter-appointment-status').value = '';
+                document.getElementById('filter-appointment-reason').value = '';
+                document.getElementById('filter-appointment-fee').value = '';
+                break;
+            case 'medical-reports':
+                document.getElementById('filter-report-patient').value = '';
+                document.getElementById('filter-report-doctor').value = '';
+                document.getElementById('filter-report-department').value = '';
+                document.getElementById('filter-report-visit-date').value = '';
+                document.getElementById('filter-report-diagnosis').value = '';
+                document.getElementById('filter-report-treatment').value = '';
+                document.getElementById('filter-report-follow-up').value = '';
+                break;
         }
         
-        // Reload data without filters
-        this.loadPageData(type);
+        this.loadDataTable(type);
     }
 
     async loadFilterOptions(type) {
@@ -710,14 +1086,16 @@ class HospitalDashboard {
                 this.populateSelectOptions('filter-doctor-fee', options.consultation_fees || []);
                 break;
             case 'appointments':
-                this.populateSelectOptions('filter-appointment-patient', options.patient_names || []);
-                this.populateSelectOptions('filter-appointment-doctor', options.doctor_names || []);
-                this.populateSelectOptions('filter-appointment-department', options.department_names || []);
+                this.populateSelectOptions('filter-appointment-patient', options.patients || []);
+                this.populateSelectOptions('filter-appointment-doctor', options.doctors || []);
+                this.populateSelectOptions('filter-appointment-date', options.appointment_dates || []);
+                this.populateSelectOptions('filter-appointment-status', options.statuses || []);
                 break;
             case 'medical-reports':
-                this.populateSelectOptions('filter-report-patient', options.patient_names || []);
-                this.populateSelectOptions('filter-report-doctor', options.doctor_names || []);
-                this.populateSelectOptions('filter-report-department', options.department_names || []);
+                this.populateSelectOptions('filter-report-patient', options.patients || []);
+                this.populateSelectOptions('filter-report-doctor', options.doctors || []);
+                this.populateSelectOptions('filter-report-visit-date', options.visit_dates || []);
+                this.populateSelectOptions('filter-report-diagnosis', options.diagnoses || []);
                 break;
         }
     }
@@ -726,9 +1104,13 @@ class HospitalDashboard {
         const selectElement = document.getElementById(selectId);
         if (!selectElement) return;
 
+        // Get the first option text to preserve it
         const firstOption = selectElement.querySelector('option').textContent;
+        
+        // Clear existing options except the first one
         selectElement.innerHTML = `<option value="">${firstOption}</option>`;
         
+        // Add new options
         options.forEach(option => {
             const optionElement = document.createElement('option');
             optionElement.value = option;
@@ -741,17 +1123,22 @@ class HospitalDashboard {
         try {
             this.showLoading();
             
+            // Get current filters
             const filters = this.getFilters(type);
+            
+            // Create form data for CSV export
             const formData = {
                 action: 'export_csv',
                 ...filters
             };
             
+            // Create a temporary form to submit the export request
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = `php/${type}.php`;
             form.style.display = 'none';
             
+            // Add form fields
             Object.keys(formData).forEach(key => {
                 const input = document.createElement('input');
                 input.type = 'hidden';
@@ -760,10 +1147,12 @@ class HospitalDashboard {
                 form.appendChild(input);
             });
             
+            // Submit form
             document.body.appendChild(form);
             form.submit();
             document.body.removeChild(form);
             
+            // Show success message
             this.showSuccessMessage(`${this.getTypeName(type)} data exported successfully!`);
             
         } catch (error) {
@@ -775,6 +1164,7 @@ class HospitalDashboard {
     }
 
     showSuccessMessage(message) {
+        // Create a simple success notification
         const notification = document.createElement('div');
         notification.className = 'notification success';
         notification.textContent = message;
@@ -795,29 +1185,6 @@ class HospitalDashboard {
         setTimeout(() => {
             notification.remove();
         }, 3000);
-    }
-
-    showErrorMessage(message) {
-        const notification = document.createElement('div');
-        notification.className = 'notification error';
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #e74c3c;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 5000);
     }
 
     getTypeName(type) {
@@ -845,7 +1212,7 @@ class HospitalDashboard {
     }
 
     showError(message) {
-        alert(message);
+        alert(message); // Replace with better error handling
     }
 
     formatDate(dateString) {
@@ -866,8 +1233,17 @@ class HospitalDashboard {
         return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
+    // Helper methods for enhanced display
     truncateText(text, maxLength) {
         return text && text.length > maxLength ? text.substring(0, maxLength) + '...' : text || '';
+    }
+
+    getDepartmentCount(doctors) {
+        const departments = new Set();
+        doctors.forEach(doctor => {
+            if (doctor.department_id) departments.add(doctor.department_id);
+        });
+        return departments.size;
     }
 
     isFollowUpOverdue(followUpDate) {
@@ -876,8 +1252,106 @@ class HospitalDashboard {
         return followUp < today;
     }
 
+    getAvailabilityStatus(doctor) {
+        const schedule = doctor.schedule || '9:00-17:00';
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
+        
+        // Basic availability check
+        if (currentHour >= 9 && currentHour < 17) {
+            return 'Available';
+        } else {
+            return 'Off Duty';
+        }
+    }
+
+    getAppointmentStatusClass(status) {
+        const statusClasses = {
+            'scheduled': 'status-scheduled',
+            'completed': 'status-completed',
+            'cancelled': 'status-cancelled',
+            'pending': 'status-pending'
+        };
+        return statusClasses[status.toLowerCase()] || 'status-pending';
+    }
+
+    // Enhanced filtering method to handle all filter types
+    getFilters(module) {
+        const filterForm = document.querySelector(`#${module}-page .filter-section form`);
+        if (!filterForm) return {};
+
+        const formData = new FormData(filterForm);
+        const filters = {};
+
+        // Convert FormData to object, handling empty values
+        for (let [key, value] of formData.entries()) {
+            if (value.trim() !== '') {
+                filters[key] = value;
+            }
+        }
+
+        return filters;
+    }
+
+    // Load dropdown options for enhanced filtering
+    async loadFilterDropdowns(module) {
+        try {
+            if (module === 'doctors') {
+                await this.loadDepartmentDropdown('doctor-department-filter');
+            } else if (module === 'appointments') {
+                await this.loadDoctorDropdown('appointment-doctor-filter');
+                await this.loadDepartmentDropdown('appointment-department-filter');
+            } else if (module === 'medical-reports') {
+                await this.loadDoctorDropdown('report-doctor-filter');
+                await this.loadDepartmentDropdown('report-department-filter');
+            }
+        } catch (error) {
+            console.error('Error loading filter dropdowns:', error);
+        }
+    }
+
+    async loadDepartmentDropdown(selectId) {
+        try {
+            const response = await fetch('/hospital-dashboard/api/departments.php');
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    select.innerHTML = '<option value="">All Departments</option>';
+                    data.data.forEach(dept => {
+                        select.innerHTML += `<option value="${dept.id}">${dept.name}</option>`;
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error loading departments:', error);
+        }
+    }
+
+    async loadDoctorDropdown(selectId) {
+        try {
+            const response = await fetch('/hospital-dashboard/api/doctors.php');
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    select.innerHTML = '<option value="">All Doctors</option>';
+                    data.data.forEach(doctor => {
+                        select.innerHTML += `<option value="${doctor.id}">${doctor.first_name} ${doctor.last_name}</option>`;
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error loading doctors:', error);
+        }
+    }
+
+    // Placeholder methods for CRUD operations - will be overridden by crud.js
     openCrudModal(type, action, id = null) {
         console.log(`Opening ${action} modal for ${type}`, id);
+        // Use the global CrudManager instance
         if (window.crudManager) {
             window.crudManager.openModal(type, action, id);
         } else {
@@ -887,6 +1361,7 @@ class HospitalDashboard {
     }
 
     closeCrudModal() {
+        // Use the global CrudManager instance
         if (window.crudManager) {
             window.crudManager.closeModal();
         } else {
@@ -899,6 +1374,7 @@ class HospitalDashboard {
 
     viewRecord(type, id) {
         console.log(`Viewing ${type} record:`, id);
+        // Use CrudManager to open in view mode
         if (window.crudManager) {
             window.crudManager.openModal(type, 'view', id);
         } else {
@@ -908,6 +1384,7 @@ class HospitalDashboard {
 
     editRecord(type, id) {
         console.log(`Editing ${type} record:`, id);
+        // Use CrudManager to open in edit mode
         if (window.crudManager) {
             window.crudManager.openModal(type, 'edit', id);
         } else {
@@ -918,6 +1395,7 @@ class HospitalDashboard {
     deleteRecord(type, id) {
         if (confirm('Are you sure you want to delete this record?')) {
             console.log(`Deleting ${type} record:`, id);
+            // Use CrudManager to delete record
             if (window.crudManager) {
                 window.crudManager.deleteRecord(type, id);
             } else {
@@ -926,15 +1404,23 @@ class HospitalDashboard {
         }
     }
 
+    initCharts() {
+        // Chart initialization will be handled in charts.js
+    }
+
     updateCharts(data) {
         console.log('updateCharts called with data:', data);
         console.log('window.chartManager available:', !!window.chartManager);
         
         if (window.chartManager && data) {
             console.log('Calling chartManager.updateCharts...');
+            
+            // Use chartManager's updateCharts method which expects the correct format
             window.chartManager.updateCharts(data);
         } else {
             console.warn('chartManager not available or no data provided');
+            console.warn('window.chartManager:', window.chartManager);
+            console.warn('data:', data);
         }
     }
 
@@ -950,6 +1436,7 @@ class HospitalDashboard {
     }
 
     formatSQL(sql) {
+        // Basic SQL formatting for better readability
         return sql
             .replace(/SELECT/gi, 'SELECT')
             .replace(/FROM/gi, '\nFROM')
@@ -973,6 +1460,7 @@ class HospitalDashboard {
                 alert('SQL code copied to clipboard!');
             });
         } else {
+            // Fallback for older browsers
             const textArea = document.createElement('textarea');
             textArea.value = sqlCode;
             document.body.appendChild(textArea);
@@ -1013,11 +1501,13 @@ function copySQLCode() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('main.js: DOMContentLoaded event fired');
     
+    // Add a delay to ensure all scripts are loaded
     setTimeout(() => {
         try {
             window.dashboard = new HospitalDashboard();
             console.log('main.js: Dashboard instance created and assigned to window.dashboard');
             
+            // Verify dashboard is working
             if (window.dashboard && typeof window.dashboard.init === 'function') {
                 console.log('✅ Dashboard initialized successfully');
             } else {
@@ -1033,12 +1523,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function openCrudModal(type, action, id = null) {
     console.log('Global openCrudModal called with:', { type, action, id });
     
+    // Check if dashboard is available
     if (!window.dashboard) {
         console.error('Dashboard not available');
         alert('Dashboard not loaded yet. Please refresh the page and try again.');
         return;
     }
     
+    // Check if crudManager is available
     if (!window.crudManager) {
         console.error('CrudManager not available');
         alert('CRUD system not loaded. Please refresh the page and try again.');
@@ -1065,6 +1557,7 @@ function clearFilters(type) {
     window.dashboard.clearFilters(type);
 }
 
+// Action button functions
 function viewRecord(type, id) {
     window.dashboard.viewRecord(type, id);
 }
@@ -1077,6 +1570,7 @@ function deleteRecord(type, id) {
     window.dashboard.deleteRecord(type, id);
 }
 
+// SQL Display Functions
 function toggleSQLDisplay(type) {
     window.dashboard.showSQLCode(type);
 }
@@ -1085,6 +1579,25 @@ function closeSQLModal() {
     document.getElementById('sql-modal').style.display = 'none';
 }
 
+function copySQLCode() {
+    const sqlCode = document.getElementById('sql-code-display').textContent;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(sqlCode).then(() => {
+            alert('SQL code copied to clipboard!');
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = sqlCode;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('SQL code copied to clipboard!');
+    }
+}
+
+// Global CSV export function
 function exportToCSV(type) {
     if (window.dashboard) {
         window.dashboard.exportToCSV(type);

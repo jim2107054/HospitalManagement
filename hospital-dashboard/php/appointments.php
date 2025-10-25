@@ -64,7 +64,7 @@ try {
             $where = [];
             $params = [];
             
-            // Handle dropdown filters instead of search
+            // Handle dropdown filters
             if (!empty($input['patient_name'])) {
                 $where[] = "p.name = ?";
                 $params[] = $input['patient_name'];
@@ -80,34 +80,20 @@ try {
                 $params[] = $input['department_name'];
             }
             
-            if (!empty($input['appointment_date'])) {
-                $where[] = "a.appointment_date = ?";
-                $params[] = $input['appointment_date'];
+            // Handle date range
+            if (!empty($input['date_from'])) {
+                $where[] = "a.appointment_date >= ?";
+                $params[] = $input['date_from'];
             }
             
-            if (!empty($input['appointment_time'])) {
-                $where[] = "a.appointment_time = ?";
-                $params[] = $input['appointment_time'];
+            if (!empty($input['date_to'])) {
+                $where[] = "a.appointment_date <= ?";
+                $params[] = $input['date_to'];
             }
             
             if (!empty($input['status'])) {
                 $where[] = "a.status = ?";
                 $params[] = $input['status'];
-            }
-            
-            if (!empty($input['reason_for_visit'])) {
-                $where[] = "a.reason_for_visit = ?";
-                $params[] = $input['reason_for_visit'];
-            }
-            
-            if (!empty($input['consultation_fee'])) {
-                $where[] = "a.consultation_fee = ?";
-                $params[] = $input['consultation_fee'];
-            }
-            
-            if (!empty($input['created_date'])) {
-                $where[] = "DATE(a.created_at) = ?";
-                $params[] = $input['created_date'];
             }
             
             $sql = "SELECT a.*, 
@@ -122,7 +108,38 @@ try {
             if (!empty($where)) {
                 $sql .= " WHERE " . implode(" AND ", $where);
             }
-            $sql .= " ORDER BY a.appointment_date DESC, a.appointment_time DESC";
+            
+            // Handle sorting with whitelist validation
+            $sort_by = $input['sort_by'] ?? 'appointment_date';
+            $sort_order = strtoupper($input['sort_order'] ?? 'DESC');
+            
+            // Whitelist for allowed sort columns
+            $allowed_sort = ['appointment_date', 'patient_name', 'doctor_name', 'status'];
+            if (!in_array($sort_by, $allowed_sort)) {
+                $sort_by = 'appointment_date';
+            }
+            
+            // Validate sort order
+            if (!in_array($sort_order, ['ASC', 'DESC'])) {
+                $sort_order = 'DESC';
+            }
+            
+            // Map sort_by to actual column names if needed
+            $sort_column_map = [
+                'patient_name' => 'p.name',
+                'doctor_name' => 'd.name',
+                'appointment_date' => 'a.appointment_date',
+                'status' => 'a.status'
+            ];
+            
+            $sort_column = $sort_column_map[$sort_by] ?? 'a.appointment_date';
+            $sql .= " ORDER BY {$sort_column} {$sort_order}";
+            
+            // Add secondary sort for consistency
+            if ($sort_by !== 'appointment_date') {
+                $sql .= ", a.appointment_date DESC";
+            }
+            $sql .= ", a.appointment_time DESC";
             
             // Store the SQL for code display
             $lastFilterSQL = $sql . " -- Parameters: " . json_encode($params);

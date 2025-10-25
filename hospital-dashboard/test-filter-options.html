@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Filter Options</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .error {
+            color: #e74c3c;
+            background: #fadbd8;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #e74c3c;
+        }
+        .success {
+            color: #27ae60;
+            background: #d5f4e6;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Filter Options API Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Appointments Filter Options</h2>
+        <button onclick="testAppointments()">Test Appointments API</button>
+        <div id="appointments-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Medical Reports Filter Options</h2>
+        <button onclick="testMedicalReports()">Test Medical Reports API</button>
+        <div id="medical-reports-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Doctors Filter Options</h2>
+        <button onclick="testDoctors()">Test Doctors API</button>
+        <div id="doctors-result"></div>
+    </div>
+
+    <script>
+        async function testAppointments() {
+            const resultDiv = document.getElementById('appointments-result');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('php/appointments.php?action=get_filter_options');
+                const text = await response.text();
+                console.log('Raw response:', text);
+                
+                const data = JSON.parse(text);
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ Success! Filter options loaded.</div>
+                        <h3>Data Structure:</h3>
+                        <pre>${JSON.stringify(data.data, null, 2)}</pre>
+                        <h3>Available Options:</h3>
+                        <ul>
+                            <li><strong>Patient Names:</strong> ${data.data.patient_names?.length || 0} options</li>
+                            <li><strong>Doctor Names:</strong> ${data.data.doctor_names?.length || 0} options</li>
+                            <li><strong>Department Names:</strong> ${data.data.department_names?.length || 0} options</li>
+                        </ul>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Error: ${data.error || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                console.error('Error:', error);
+            }
+        }
+        
+        async function testMedicalReports() {
+            const resultDiv = document.getElementById('medical-reports-result');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('php/medical-reports.php?action=get_filter_options');
+                const text = await response.text();
+                console.log('Raw response:', text);
+                
+                const data = JSON.parse(text);
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ Success! Filter options loaded.</div>
+                        <h3>Data Structure:</h3>
+                        <pre>${JSON.stringify(data.data, null, 2)}</pre>
+                        <h3>Available Options:</h3>
+                        <ul>
+                            <li><strong>Patient Names:</strong> ${data.data.patient_names?.length || 0} options</li>
+                            <li><strong>Doctor Names:</strong> ${data.data.doctor_names?.length || 0} options</li>
+                            <li><strong>Department Names:</strong> ${data.data.department_names?.length || 0} options</li>
+                        </ul>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Error: ${data.error || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                console.error('Error:', error);
+            }
+        }
+        
+        async function testDoctors() {
+            const resultDiv = document.getElementById('doctors-result');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('php/doctors.php?action=get_filter_options');
+                const text = await response.text();
+                console.log('Raw response:', text);
+                
+                const data = JSON.parse(text);
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ Success! Filter options loaded.</div>
+                        <h3>Data Structure:</h3>
+                        <pre>${JSON.stringify(data.data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Error: ${data.error || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
