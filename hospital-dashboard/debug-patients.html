@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Patients Filter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        button { margin: 5px; padding: 10px; }
+        .result { background: #f9f9f9; padding: 10px; margin: 10px 0; white-space: pre-wrap; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Debug Patients Filtering</h1>
+    
+    <div class="section">
+        <h2>Test Filters</h2>
+        <button onclick="testAllPatients()">Get All Patients</button>
+        <button onclick="testMalePatients()">Get Male Patients Only</button>
+        <button onclick="testFemalePatients()">Get Female Patients Only</button>
+        
+        <div id="result" class="result"></div>
+        
+        <h3>Patient Table</h3>
+        <table id="patients-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Blood Group</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody id="patients-table-body">
+                <!-- Data will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function testAllPatients() {
+            const result = document.getElementById('result');
+            const tbody = document.getElementById('patients-table-body');
+            
+            try {
+                result.innerHTML = 'Loading all patients...';
+                
+                const response = await fetch('php/patients.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'filter',
+                        name: '',
+                        gender: '',
+                        blood_group: '',
+                        phone: '',
+                        email: '',
+                        birth_year: '',
+                        registered_date: ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                result.innerHTML = `
+Success: ${data.success}
+SQL: ${data.sql_code || 'No SQL'}
+Records Count: ${data.data ? data.data.length : 0}
+Raw Response: ${JSON.stringify(data, null, 2)}
+                `;
+                
+                if (data.success && data.data) {
+                    updateTable(data.data);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6">No data or error</td></tr>';
+                }
+                
+            } catch (error) {
+                result.innerHTML = 'Error: ' + error.message;
+                tbody.innerHTML = '<tr><td colspan="6">Error loading data</td></tr>';
+            }
+        }
+        
+        async function testMalePatients() {
+            const result = document.getElementById('result');
+            const tbody = document.getElementById('patients-table-body');
+            
+            try {
+                result.innerHTML = 'Loading male patients...';
+                
+                const response = await fetch('php/patients.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'filter',
+                        name: '',
+                        gender: 'Male',
+                        blood_group: '',
+                        phone: '',
+                        email: '',
+                        birth_year: '',
+                        registered_date: ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                result.innerHTML = `
+Success: ${data.success}
+SQL: ${data.sql_code || 'No SQL'}
+Records Count: ${data.data ? data.data.length : 0}
+Raw Response: ${JSON.stringify(data, null, 2)}
+                `;
+                
+                if (data.success && data.data) {
+                    updateTable(data.data);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6">No data or error</td></tr>';
+                }
+                
+            } catch (error) {
+                result.innerHTML = 'Error: ' + error.message;
+                tbody.innerHTML = '<tr><td colspan="6">Error loading data</td></tr>';
+            }
+        }
+        
+        async function testFemalePatients() {
+            const result = document.getElementById('result');
+            const tbody = document.getElementById('patients-table-body');
+            
+            try {
+                result.innerHTML = 'Loading female patients...';
+                
+                const response = await fetch('php/patients.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'filter',
+                        name: '',
+                        gender: 'Female',
+                        blood_group: '',
+                        phone: '',
+                        email: '',
+                        birth_year: '',
+                        registered_date: ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                result.innerHTML = `
+Success: ${data.success}
+SQL: ${data.sql_code || 'No SQL'}
+Records Count: ${data.data ? data.data.length : 0}
+Raw Response: ${JSON.stringify(data, null, 2)}
+                `;
+                
+                if (data.success && data.data) {
+                    updateTable(data.data);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6">No data or error</td></tr>';
+                }
+                
+            } catch (error) {
+                result.innerHTML = 'Error: ' + error.message;
+                tbody.innerHTML = '<tr><td colspan="6">Error loading data</td></tr>';
+            }
+        }
+        
+        function updateTable(patients) {
+            const tbody = document.getElementById('patients-table-body');
+            
+            if (!patients || patients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No patients found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = patients.map(patient => `
+                <tr>
+                    <td>${patient.id}</td>
+                    <td>${patient.name}</td>
+                    <td>${patient.gender}</td>
+                    <td>${patient.blood_group || ''}</td>
+                    <td>${patient.phone || ''}</td>
+                    <td>${patient.email || ''}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

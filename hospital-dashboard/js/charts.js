@@ -4,6 +4,11 @@ class ChartManager {
         this.charts = {};
         this.isReady = false;
         
+        // Register the datalabels plugin
+        if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+        }
+        
         // Wait for DOM to be ready before initializing
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
@@ -82,6 +87,19 @@ class ChartManager {
                                     return `${label}: ${value} (${percentage}%)`;
                                 }
                             }
+                        },
+                        datalabels: {
+                            display: true,
+                            color: 'white',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            },
+                            formatter: function(value, context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return percentage > 5 ? percentage + '%' : ''; // Only show if > 5%
+                            }
                         }
                     }
                 }
@@ -138,7 +156,8 @@ class ChartManager {
                                 return `${label}: ${value} patients (${percentage}%)`;
                             }
                         }
-                    }
+                    },
+                    datalabels: this.getDataLabelsConfig()
                 }
             }
         });
@@ -190,7 +209,8 @@ class ChartManager {
                                 return `${label}: ${value} doctors (${percentage}%)`;
                             }
                         }
-                    }
+                    },
+                    datalabels: this.getDataLabelsConfig()
                 }
             }
         });
@@ -236,7 +256,8 @@ class ChartManager {
                                 return `${label}: ${value} patients (${percentage}%)`;
                             }
                         }
-                    }
+                    },
+                    datalabels: this.getDataLabelsConfig()
                 }
             }
         });
@@ -284,7 +305,8 @@ class ChartManager {
                                 return `${label}: ${value} patients (${percentage}%)`;
                             }
                         }
-                    }
+                    },
+                    datalabels: this.getDataLabelsConfig()
                 }
             }
         });
@@ -335,7 +357,8 @@ class ChartManager {
                                 return `${label}: $${value.toFixed(2)} (${percentage}%)`;
                             }
                         }
-                    }
+                    },
+                    datalabels: this.getDataLabelsConfig()
                 }
             }
         });
@@ -565,6 +588,23 @@ class ChartManager {
         Object.values(this.charts).forEach(chart => {
             chart.resize();
         });
+    }
+
+    // Get default datalabels configuration
+    getDataLabelsConfig() {
+        return {
+            display: true,
+            color: 'white',
+            font: {
+                weight: 'bold',
+                size: 12
+            },
+            formatter: function(value, context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                return percentage > 5 ? percentage + '%' : '';
+            }
+        };
     }
 }
 

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnose Filter Issue</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .diagnostic { background: white; padding: 20px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #007bff; }
+        .error { border-left-color: #dc3545; background: #fff5f5; }
+        .success { border-left-color: #28a745; background: #f5fff5; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .test-section { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Diagnostic: Why Filter Not Working</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Check Backend Filter API</h2>
+        <button onclick="testBackendFilter()">Test Backend: Filter Male Patients</button>
+        <div id="backend-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Check Frontend Element Access</h2>
+        <button onclick="testFrontendElements()">Test Frontend: Check Dashboard Elements</button>
+        <div id="frontend-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Simulate Main Dashboard Filter</h2>
+        <button onclick="simulateDashboardFilter()">Simulate Dashboard Filter Call</button>
+        <div id="simulate-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Direct Main Dashboard Test</h2>
+        <button onclick="openMainDashboard()">Open Main Dashboard in New Tab</button>
+        <button onclick="injectDebugScript()">Inject Debug Script</button>
+        <div id="debug-result"></div>
+    </div>
+
+    <script>
+        // Test 1: Backend API
+        async function testBackendFilter() {
+            const resultDiv = document.getElementById('backend-result');
+            resultDiv.innerHTML = '<div class="diagnostic">Testing backend filter API...</div>';
+            
+            try {
+                const response = await fetch('php/patients.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'filter',
+                        name: '',
+                        gender: 'Male',
+                        blood_group: '',
+                        phone: '',
+                        email: '',
+                        birth_year: '',
+                        registered_date: ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const maleCount = data.data.length;
+                    const femaleCount = data.data.filter(p => p.gender === 'Female').length;
+                    
+                    if (femaleCount > 0) {
+                        resultDiv.innerHTML = `
+                            <div class="diagnostic error">
+                                ❌ BACKEND ISSUE: Found ${femaleCount} female patients in "Male" filter results!
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="diagnostic success">
+                                ✅ BACKEND OK: Filter returned ${maleCount} male patients only.
+                                <pre>SQL: ${data.sql_code}</pre>
+                            </div>
+                        `;
+                    }
+                } else {
+                    resultDiv.innerHTML = `<div class="diagnostic error">❌ Backend Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="diagnostic error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Test 2: Frontend Elements
+        function testFrontendElements() {
+            const resultDiv = document.getElementById('frontend-result');
+            
+            // Try to access main dashboard in iframe or new window
+            const mainWindow = window.open('index.html', 'mainDashboard', 'width=1,height=1');
+            
+            setTimeout(() => {
+                try {
+                    const genderFilter = mainWindow.document.getElementById('filter-patient-gender');
+                    const applyButton = mainWindow.document.querySelector('.btn.btn-secondary');
+                    
+                    let result = '<div class="diagnostic">';
+                    
+                    if (genderFilter) {
+                        result += `✅ Gender filter element found: ${genderFilter.tagName}<br>`;
+                        result += `Current value: "${genderFilter.value}"<br>`;
+                        result += `Available options: ${Array.from(genderFilter.options).map(o => o.value).join(', ')}<br>`;
+                    } else {
+                        result += '❌ Gender filter element NOT found<br>';
+                    }
+                    
+                    if (applyButton) {
+                        result += `✅ Apply button found: onclick="${applyButton.getAttribute('onclick')}"<br>`;
+                    } else {
+                        result += '❌ Apply button NOT found<br>';
+                    }
+                    
+                    result += '</div>';
+                    resultDiv.innerHTML = result;
+                    
+                    mainWindow.close();
+                } catch (error) {
+                    resultDiv.innerHTML = `<div class="diagnostic error">❌ Cannot access main dashboard: ${error.message}</div>`;
+                    mainWindow.close();
+                }
+            }, 2000);
+        }
+        
+        // Test 3: Simulate Dashboard Filter
+        async function simulateDashboardFilter() {
+            const resultDiv = document.getElementById('simulate-result');
+            resultDiv.innerHTML = '<div class="diagnostic">Simulating main dashboard filter logic...</div>';
+            
+            // Simulate the exact same logic as main dashboard
+            const filters = {
+                name: '',
+                gender: 'Male',  // Hardcode Male selection
+                blood_group: '',
+                phone: '',
+                email: '',
+                birth_year: '',
+                registered_date: ''
+            };
+            
+            try {
+                const response = await fetch('php/patients.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'filter',
+                        ...filters
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="diagnostic ${data.success ? 'success' : 'error'}">
+                        <strong>Simulation Result:</strong><br>
+                        Success: ${data.success}<br>
+                        Records: ${data.data ? data.data.length : 0}<br>
+                        SQL: ${data.sql_code || 'No SQL'}<br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="diagnostic error">❌ Simulation Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Test 4: Open main dashboard
+        function openMainDashboard() {
+            window.open('index.html', '_blank');
+        }
+        
+        function injectDebugScript() {
+            const resultDiv = document.getElementById('debug-result');
+            
+            const debugCode = `
+// Debug script for main dashboard
+console.log('=== FILTER DEBUG ===');
+
+// Check if dashboard object exists
+console.log('window.dashboard exists:', !!window.dashboard);
+
+// Test filter reading
+function testFilterReading() {
+    const genderElement = document.getElementById('filter-patient-gender');
+    console.log('Gender element:', genderElement);
+    console.log('Gender value:', genderElement ? genderElement.value : 'NOT FOUND');
+    
+    if (window.dashboard && window.dashboard.getFilters) {
+        const filters = window.dashboard.getFilters('patients');
+        console.log('Dashboard getFilters result:', filters);
+    } else {
+        console.log('Dashboard or getFilters method not available');
+    }
+}
+
+// Test apply filters
+function testApplyFilters() {
+    console.log('Testing applyFilters...');
+    if (window.dashboard && window.dashboard.applyFilters) {
+        window.dashboard.applyFilters('patients');
+    } else {
+        console.log('Dashboard or applyFilters method not available');
+    }
+}
+
+// Add to window for manual testing
+window.testFilterReading = testFilterReading;
+window.testApplyFilters = testApplyFilters;
+
+console.log('Debug functions added. Use testFilterReading() and testApplyFilters() in console.');
+            `;
+            
+            resultDiv.innerHTML = `
+                <div class="diagnostic">
+                    <strong>Debug Script (Copy and paste in main dashboard console):</strong>
+                    <pre>${debugCode}</pre>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

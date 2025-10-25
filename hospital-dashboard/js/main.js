@@ -5,10 +5,18 @@ class HospitalDashboard {
     constructor() {
         console.log('main.js: Dashboard constructor called');
         this.currentPage = 'overview';
+        
+        // Store SQL queries for each module
+        this.lastSQLQueries = {
+            patients: '',
+            departments: '',
+            doctors: '',
+            appointments: '',
+            'medical-reports': ''
+        };
+        
         this.init();
-    }
-
-    init() {
+    }    init() {
         this.setupEventListeners();
         
         // Wait a bit for Chart.js and charts.js to load, then load data
@@ -211,6 +219,9 @@ class HospitalDashboard {
                 
                 // Load filter options
                 await this.loadFilterOptions('patients');
+                
+                // Apply empty filters to show all data and generate SQL
+                await this.applyFilters('patients');
             } else {
                 console.warn('Patients API returned invalid data:', data);
                 // Set default values
@@ -242,6 +253,12 @@ class HospitalDashboard {
                 
                 // Load dropdown options for other filters
                 this.loadDepartmentDropdowns(data.data);
+                
+                // Load filter options
+                await this.loadFilterOptions('departments');
+                
+                // Apply empty filters to show all data and generate SQL
+                await this.applyFilters('departments');
             }
         } catch (error) {
             console.error('Error loading departments data:', error);
@@ -265,6 +282,12 @@ class HospitalDashboard {
                 
                 // Load dropdown options
                 this.loadDoctorDropdowns(data.data);
+                
+                // Load filter options
+                await this.loadFilterOptions('doctors');
+                
+                // Apply empty filters to show all data and generate SQL
+                await this.applyFilters('doctors');
             }
         } catch (error) {
             console.error('Error loading doctors data:', error);
@@ -289,6 +312,12 @@ class HospitalDashboard {
                 
                 // Load dropdown options
                 this.loadAppointmentDropdowns();
+                
+                // Load filter options
+                await this.loadFilterOptions('appointments');
+                
+                // Apply empty filters to show all data and generate SQL
+                await this.applyFilters('appointments');
             }
         } catch (error) {
             console.error('Error loading appointments data:', error);
@@ -313,6 +342,12 @@ class HospitalDashboard {
                 
                 // Load dropdown options
                 this.loadMedicalReportDropdowns();
+                
+                // Load filter options
+                await this.loadFilterOptions('medical-reports');
+                
+                // Apply empty filters to show all data and generate SQL
+                await this.applyFilters('medical-reports');
             }
         } catch (error) {
             console.error('Error loading medical reports data:', error);
@@ -871,8 +906,8 @@ class HospitalDashboard {
                 
                 // Show SQL display button and store SQL code
                 if (data.sql_code) {
-                    this.showSQLDisplay(type);
-                    this.storeSQLCode(type, data.sql_code);
+                    this.lastSQLQueries[type] = data.sql_code;
+                    console.log(`Stored SQL for ${type}:`, data.sql_code);
                 }
             }
         } catch (error) {
@@ -1036,7 +1071,34 @@ class HospitalDashboard {
                 this.populateSelectOptions('filter-patient-birth-year', options.birth_years || []);
                 this.populateSelectOptions('filter-patient-registered-date', options.registered_dates || []);
                 break;
-            // Add other cases as needed
+            case 'departments':
+                this.populateSelectOptions('filter-dept-name', options.names || []);
+                this.populateSelectOptions('filter-dept-location', options.locations || []);
+                this.populateSelectOptions('filter-dept-contact', options.contact_numbers || []);
+                this.populateSelectOptions('filter-dept-head-doctor', options.head_doctor_names || []);
+                this.populateSelectOptions('filter-dept-created-date', options.created_dates || []);
+                break;
+            case 'doctors':
+                this.populateSelectOptions('filter-doctor-name', options.names || []);
+                this.populateSelectOptions('filter-doctor-specialization', options.specializations || []);
+                this.populateSelectOptions('filter-doctor-department', options.departments || []);
+                this.populateSelectOptions('filter-doctor-phone', options.phones || []);
+                this.populateSelectOptions('filter-doctor-email', options.emails || []);
+                this.populateSelectOptions('filter-doctor-experience', options.experience_years || []);
+                this.populateSelectOptions('filter-doctor-fee', options.consultation_fees || []);
+                break;
+            case 'appointments':
+                this.populateSelectOptions('filter-appointment-patient', options.patients || []);
+                this.populateSelectOptions('filter-appointment-doctor', options.doctors || []);
+                this.populateSelectOptions('filter-appointment-date', options.appointment_dates || []);
+                this.populateSelectOptions('filter-appointment-status', options.statuses || []);
+                break;
+            case 'medical-reports':
+                this.populateSelectOptions('filter-report-patient', options.patients || []);
+                this.populateSelectOptions('filter-report-doctor', options.doctors || []);
+                this.populateSelectOptions('filter-report-visit-date', options.visit_dates || []);
+                this.populateSelectOptions('filter-report-diagnosis', options.diagnoses || []);
+                break;
         }
     }
 
@@ -1362,6 +1424,78 @@ class HospitalDashboard {
             console.warn('window.chartManager:', window.chartManager);
             console.warn('data:', data);
         }
+    }
+
+    // SQL Code Display Methods
+    showSQLCode(module) {
+        const sqlQuery = this.lastSQLQueries[module];
+        if (sqlQuery) {
+            document.getElementById('sql-code-display').textContent = this.formatSQL(sqlQuery);
+            document.getElementById('sql-popup').style.display = 'flex';
+        } else {
+            alert('No SQL query available. Please apply filters first.');
+        }
+    }
+
+    formatSQL(sql) {
+        // Basic SQL formatting for better readability
+        return sql
+            .replace(/SELECT/gi, 'SELECT')
+            .replace(/FROM/gi, '\nFROM')
+            .replace(/WHERE/gi, '\nWHERE')
+            .replace(/AND/gi, '\n  AND')
+            .replace(/OR/gi, '\n  OR')
+            .replace(/ORDER BY/gi, '\nORDER BY')
+            .replace(/GROUP BY/gi, '\nGROUP BY')
+            .replace(/HAVING/gi, '\nHAVING')
+            .replace(/LIMIT/gi, '\nLIMIT');
+    }
+
+    closeSQLPopup() {
+        document.getElementById('sql-popup').style.display = 'none';
+    }
+
+    copySQLCode() {
+        const sqlCode = document.getElementById('sql-code-display').textContent;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(sqlCode).then(() => {
+                alert('SQL code copied to clipboard!');
+            });
+        } else {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = sqlCode;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('SQL code copied to clipboard!');
+        }
+    }
+}
+
+// Global functions for HTML onclick events
+function showSQLCode(module) {
+    if (window.dashboard) {
+        window.dashboard.showSQLCode(module);
+    } else {
+        alert('Dashboard not available');
+    }
+}
+
+function closeSQLPopup() {
+    if (window.dashboard) {
+        window.dashboard.closeSQLPopup();
+    } else {
+        document.getElementById('sql-popup').style.display = 'none';
+    }
+}
+
+function copySQLCode() {
+    if (window.dashboard) {
+        window.dashboard.copySQLCode();
+    } else {
+        alert('Dashboard not available');
     }
 }
 

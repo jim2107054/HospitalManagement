@@ -272,14 +272,17 @@
                                 <!-- Options will be loaded dynamically -->
                             </select>
                             
-                            <button class="btn btn-secondary" onclick="applyFilters('patients')">
+                            <button class="btn btn-secondary" onclick="dashboard.applyFilters('patients')">
                                 <i class="fas fa-filter"></i> Apply Filters
                             </button>
-                            <button class="btn btn-outline" onclick="clearFilters('patients')">
+                            <button class="btn btn-outline" onclick="dashboard.clearFilters('patients')">
                                 <i class="fas fa-times"></i> Clear
                             </button>
-                            <button class="btn btn-success" onclick="exportToCSV('patients')">
+                            <button class="btn btn-success" onclick="dashboard.exportToCSV('patients')">
                                 <i class="fas fa-download"></i> Export CSV
+                            </button>
+                            <button class="btn btn-icon sql-code-btn" onclick="showSQLCode('patients')" title="View SQL Code">
+                                <i class="fas fa-code"></i>
                             </button>
                         </div>
                         <div class="sql-display" id="patients-sql-display" style="display: none;">
@@ -385,6 +388,9 @@
                             </button>
                             <button class="btn btn-success" onclick="exportToCSV('departments')">
                                 <i class="fas fa-download"></i> Export CSV
+                            </button>
+                            <button class="btn btn-icon sql-code-btn" onclick="showSQLCode('departments')" title="View SQL Code">
+                                <i class="fas fa-code"></i>
                             </button>
                         </div>
                     </div>
@@ -498,6 +504,9 @@
                             </button>
                             <button class="btn btn-success" onclick="exportToCSV('doctors')">
                                 <i class="fas fa-download"></i> Export CSV
+                            </button>
+                            <button class="btn btn-icon sql-code-btn" onclick="showSQLCode('doctors')" title="View SQL Code">
+                                <i class="fas fa-code"></i>
                             </button>
                         </div>
                     </div>
@@ -617,6 +626,9 @@
                             <button class="btn btn-success" onclick="exportToCSV('appointments')">
                                 <i class="fas fa-download"></i> Export CSV
                             </button>
+                            <button class="btn btn-icon sql-code-btn" onclick="showSQLCode('appointments')" title="View SQL Code">
+                                <i class="fas fa-code"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -730,6 +742,9 @@
                             <button class="btn btn-success" onclick="exportToCSV('medical-reports')">
                                 <i class="fas fa-download"></i> Export CSV
                             </button>
+                            <button class="btn btn-icon sql-code-btn" onclick="showSQLCode('medical-reports')" title="View SQL Code">
+                                <i class="fas fa-code"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -792,6 +807,29 @@
         </div>
     </div>
 
+    <!-- SQL Code Display Popup -->
+    <div id="sql-popup" class="modal-overlay" style="display: none;">
+        <div class="modal-content sql-modal">
+            <div class="modal-header">
+                <h3>SQL Query</h3>
+                <button class="modal-close" onclick="closeSQLPopup()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="sql-description">SQL query used for current filter:</p>
+                <div class="sql-code-container">
+                    <pre id="sql-code-display"><code>No query available</code></pre>
+                </div>
+                <div class="sql-actions">
+                    <button class="btn btn-secondary" onclick="copySQLCode()">
+                        <i class="fas fa-copy"></i> Copy SQL
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay">
         <div class="spinner"></div>
@@ -799,6 +837,7 @@
 
     <!-- Scripts in correct loading order -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="js/charts.js"></script>
     <script src="js/crud.js"></script>
     <script src="js/main.js"></script>

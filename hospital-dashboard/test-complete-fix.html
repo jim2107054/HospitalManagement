@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Filter Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-header { background: #007bff; color: white; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 8px 8px 0 0; }
+        .filter-section { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .filter-row { display: flex; gap: 15px; align-items: center; margin-bottom: 10px; }
+        select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px; }
+        button { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #218838; }
+        .clear-btn { background: #6c757d; margin-left: 10px; }
+        .clear-btn:hover { background: #5a6268; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: bold; }
+        tr:hover { background: #f5f5f5; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .debug { background: #fff3cd; padding: 10px; margin: 10px 0; border: 1px solid #ffeaa7; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🏥 Complete Filter Fix Test</h1>
+            <p>Testing the fixed filtering functionality with cleaned up code</p>
+        </div>
+
+        <div class="status info">
+            <strong>Test Instructions:</strong><br>
+            1. Page should load showing ALL patients initially<br>
+            2. Select "Male" from Gender dropdown<br>
+            3. Click "Apply Filters" - should show only male patients<br>
+            4. Click "Clear Filters" - should show all patients again
+        </div>
+
+        <div class="filter-section">
+            <h3>🔍 Patient Filters</h3>
+            <div class="filter-row">
+                <label><strong>Gender:</strong></label>
+                <select id="patients-gender-filter">
+                    <option value="">All Genders</option>
+                </select>
+                
+                <label><strong>Blood Group:</strong></label>
+                <select id="patients-blood-group-filter">
+                    <option value="">All Blood Groups</option>
+                </select>
+                
+                <button onclick="applyFilters('patients')">Apply Filters</button>
+                <button class="clear-btn" onclick="clearFilters()">Clear Filters</button>
+            </div>
+        </div>
+
+        <div id="filter-status" class="status info">
+            <strong>Current Filter:</strong> <span id="current-filter">No filters applied - showing all patients</span>
+        </div>
+
+        <div class="debug" id="debug-info">
+            <strong>Debug Info:</strong> Page loaded, initializing...
+        </div>
+
+        <table id="patients-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Gender</th>
+                    <th>Blood Group</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="6">Loading patients...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let debugInfo = document.getElementById('debug-info');
+        let filterStatus = document.getElementById('current-filter');
+
+        function updateDebug(message) {
+            debugInfo.innerHTML = '<strong>Debug Info:</strong> ' + message;
+            console.log('DEBUG:', message);
+        }
+
+        // Load filter options
+        async function loadFilterOptions() {
+            try {
+                updateDebug('Loading filter options...');
+                const response = await fetch('php/patients.php?action=get_filter_options');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Populate gender filter
+                    const genderSelect = document.getElementById('patients-gender-filter');
+                    genderSelect.innerHTML = '<option value="">All Genders</option>';
+                    data.genders.forEach(gender => {
+                        genderSelect.innerHTML += `<option value="${gender}">${gender}</option>`;
+                    });
+                    
+                    // Populate blood group filter
+                    const bloodGroupSelect = document.getElementById('patients-blood-group-filter');
+                    bloodGroupSelect.innerHTML = '<option value="">All Blood Groups</option>';
+                    data.blood_groups.forEach(bg => {
+                        bloodGroupSelect.innerHTML += `<option value="${bg}">${bg}</option>`;
+                    });
+                    
+                    updateDebug('Filter options loaded successfully');
+                } else {
+                    updateDebug('Error loading filter options: ' + data.message);
+                }
+            } catch (error) {
+                updateDebug('Error loading filter options: ' + error.message);
+            }
+        }
+
+        // Apply filters
+        async function applyFilters(type) {
+            try {
+                const gender = document.getElementById('patients-gender-filter').value;
+                const bloodGroup = document.getElementById('patients-blood-group-filter').value;
+                
+                let filterText = 'No filters applied - showing all patients';
+                if (gender || bloodGroup) {
+                    filterText = 'Filtered by: ';
+                    if (gender) filterText += `Gender=${gender} `;
+                    if (bloodGroup) filterText += `Blood Group=${bloodGroup}`;
+                }
+                filterStatus.textContent = filterText;
+                
+                updateDebug(`Applying filters - Gender: "${gender}", Blood Group: "${bloodGroup}"`);
+                
+                const params = new URLSearchParams({
+                    action: 'filter',
+                    gender: gender,
+                    blood_group: bloodGroup
+                });
+                
+                const response = await fetch(`php/patients.php?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateDebug(`Filter applied successfully. Found ${data.patients.length} patients. SQL: ${data.sql_query}`);
+                    updatePatientsTable(data.patients);
+                } else {
+                    updateDebug('Error applying filters: ' + data.message);
+                }
+            } catch (error) {
+                updateDebug('Error applying filters: ' + error.message);
+            }
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('patients-gender-filter').value = '';
+            document.getElementById('patients-blood-group-filter').value = '';
+            filterStatus.textContent = 'No filters applied - showing all patients';
+            updateDebug('Filters cleared, loading all patients');
+            applyFilters('patients');
+        }
+
+        // Update patients table
+        function updatePatientsTable(patients) {
+            const tbody = document.querySelector('#patients-table tbody');
+            
+            if (patients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No patients found matching the filter criteria.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = patients.map(patient => `
+                <tr>
+                    <td>${patient.id}</td>
+                    <td>${patient.name}</td>
+                    <td>${patient.phone}</td>
+                    <td>${patient.email}</td>
+                    <td>${patient.gender}</td>
+                    <td>${patient.blood_group}</td>
+                </tr>
+            `).join('');
+            
+            updateDebug(`Table updated with ${patients.length} patients`);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            updateDebug('Page loaded, initializing...');
+            await loadFilterOptions();
+            await applyFilters('patients'); // Load all patients initially
+            updateDebug('Initialization complete');
+        });
+    </script>
+</body>
+</html>

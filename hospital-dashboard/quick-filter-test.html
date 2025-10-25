@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Filter Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        select, button { padding: 10px; margin: 5px; font-size: 16px; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .male-row { background-color: #e8f5e8; }
+        .female-row { background-color: #ffe8e8; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Quick Filter Fix Test</h1>
+    
+    <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <strong>Testing the exact same scenario as your main dashboard issue</strong>
+    </div>
+    
+    <div>
+        <label>Gender Filter: </label>
+        <select id="gender-filter">
+            <option value="">All Genders</option>
+            <option value="Male" selected>Male</option>
+            <option value="Female">Female</option>
+        </select>
+        
+        <button onclick="applyFilterTest()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px;">
+            🔍 Apply Filter (Should Show ONLY Males)
+        </button>
+        
+        <button onclick="showAllPatients()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px;">
+            📋 Show All Patients
+        </button>
+    </div>
+    
+    <div id="result" class="result">Click "Apply Filter" to test...</div>
+    
+    <table id="patients-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Blood Group</th>
+                <th>Expected in Male Filter?</th>
+            </tr>
+        </thead>
+        <tbody id="patients-body">
+            <tr><td colspan="5">Click button to load data...</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        async function applyFilterTest() {
+            const selectedGender = document.getElementById('gender-filter').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = `<strong>🔍 Applying filter: Gender = "${selectedGender}"</strong><br>Loading...`;
+            
+            try {
+                // This is the EXACT same call that should happen in main dashboard
+                const response = await fetch('php/patients.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'filter',
+                        name: '',
+                        gender: selectedGender,
+                        blood_group: '',
+                        phone: '',
+                        email: '',
+                        birth_year: '',
+                        registered_date: ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const patients = data.data;
+                    const maleCount = patients.filter(p => p.gender === 'Male').length;
+                    const femaleCount = patients.filter(p => p.gender === 'Female').length;
+                    
+                    if (selectedGender === 'Male' && femaleCount > 0) {
+                        resultDiv.innerHTML = `
+                            <div style="color: red; font-weight: bold;">
+                                ❌ FILTER FAILED: Found ${femaleCount} female patients when filtering for Males!<br>
+                                This means the backend filter is broken.
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <strong>SQL:</strong> ${data.sql_code}<br>
+                                <strong>Total Results:</strong> ${patients.length}<br>
+                                <strong>Males:</strong> ${maleCount}, <strong>Females:</strong> ${femaleCount}
+                            </div>
+                        `;
+                    } else if (selectedGender === 'Male' && femaleCount === 0) {
+                        resultDiv.innerHTML = `
+                            <div style="color: green; font-weight: bold;">
+                                ✅ FILTER WORKING: Found ${maleCount} male patients only (no females)
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <strong>SQL:</strong> ${data.sql_code}<br>
+                                <strong>Total Results:</strong> ${patients.length}
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div style="color: blue; font-weight: bold;">
+                                ℹ️ FILTER RESULT: ${patients.length} patients found
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <strong>SQL:</strong> ${data.sql_code}<br>
+                                <strong>Males:</strong> ${maleCount}, <strong>Females:</strong> ${femaleCount}
+                            </div>
+                        `;
+                    }
+                    
+                    displayPatients(patients);
+                } else {
+                    resultDiv.innerHTML = `<div style="color: red;">❌ Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: red;">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function showAllPatients() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<strong>📋 Loading ALL patients...</strong>';
+            
+            try {
+                const response = await fetch('php/patients.php?action=list');
+                const data = await response.json();
+                
+                if (data.success && data.patients) {
+                    const patients = data.patients;
+                    const maleCount = patients.filter(p => p.gender === 'Male').length;
+                    const femaleCount = patients.filter(p => p.gender === 'Female').length;
+                    
+                    resultDiv.innerHTML = `
+                        <div style="color: blue; font-weight: bold;">
+                            📋 ALL PATIENTS: ${patients.length} total
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <strong>Males:</strong> ${maleCount}, <strong>Females:</strong> ${femaleCount}
+                        </div>
+                    `;
+                    
+                    displayPatients(patients);
+                } else {
+                    resultDiv.innerHTML = `<div style="color: red;">❌ Error loading all patients</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: red;">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+        
+        function displayPatients(patients) {
+            const tbody = document.getElementById('patients-body');
+            
+            if (!patients || patients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No patients found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = patients.map(patient => {
+                const rowClass = patient.gender === 'Male' ? 'male-row' : 'female-row';
+                const shouldShow = document.getElementById('gender-filter').value === '' || patient.gender === document.getElementById('gender-filter').value;
+                const expectedText = shouldShow ? '✅ YES' : '❌ NO';
+                
+                return `
+                    <tr class="${rowClass}">
+                        <td>${patient.id}</td>
+                        <td>${patient.name}</td>
+                        <td><strong>${patient.gender}</strong></td>
+                        <td>${patient.blood_group || '-'}</td>
+                        <td>${expectedText}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // Load all patients on page load
+        window.onload = showAllPatients;
+    </script>
+</body>
+</html>

@@ -1127,3 +1127,80 @@ body {
         width: 100%;
     }
 }
+
+/* SQL Code Display Styles */
+.sql-code-btn {
+    background: #6c5ce7;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+}
+
+.sql-code-btn:hover {
+    background: #5a4fcf;
+    transform: translateY(-1px);
+}
+
+.sql-modal {
+    max-width: 800px;
+    width: 90%;
+}
+
+.sql-description {
+    margin-bottom: 15px;
+    color: #666;
+    font-size: 14px;
+}
+
+.sql-code-container {
+    background: #2d3748;
+    border-radius: 8px;
+    padding: 0;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.sql-code-container pre {
+    margin: 0;
+    padding: 20px;
+    background: none;
+    border: none;
+    border-radius: 0;
+    color: #e2e8f0;
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.sql-code-container code {
+    color: #e2e8f0;
+}
+
+.sql-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Button Icon Styles */
+.btn-icon {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Filter Test - MUST WORK NOW</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-box { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .success { border-left: 5px solid #28a745; background: #f8fff8; }
+        .error { border-left: 5px solid #dc3545; background: #fff8f8; }
+        .warning { border-left: 5px solid #ffc107; background: #fffdf8; }
+        button { background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; margin: 5px; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        .clear-btn { background: #6c757d; }
+        table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        .male-row { background-color: #e8f5e8; }
+        .female-row { background-color: #ffe8e8; }
+        select { padding: 8px; font-size: 16px; margin: 5px; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🎯 FINAL FILTER TEST - This MUST Work Now!</h1>
+    
+    <div class="test-box warning">
+        <h2>📋 Instructions</h2>
+        <ol>
+            <li><strong>Step 1:</strong> Select "Male" from the gender dropdown below</li>
+            <li><strong>Step 2:</strong> Click "Apply Filter"</li>
+            <li><strong>Step 3:</strong> Verify ONLY male patients are shown (should be 4 patients)</li>
+            <li><strong>Step 4:</strong> If it works here, the main dashboard is fixed!</li>
+        </ol>
+    </div>
+    
+    <div class="test-box">
+        <h2>🔍 Filter Test</h2>
+        
+        <div style="margin: 15px 0;">
+            <label><strong>Gender Filter:</strong></label>
+            <select id="gender-filter" style="margin-left: 10px;">
+                <option value="">All Genders (Show All)</option>
+                <option value="Male">Male Only</option>
+                <option value="Female">Female Only</option>
+            </select>
+        </div>
+        
+        <div style="margin: 15px 0;">
+            <button onclick="testFilter()">🔍 Apply Filter</button>
+            <button onclick="showAll()" class="clear-btn">📋 Show All Patients</button>
+            <button onclick="testMainDashboard()" style="background: #17a2b8;">🌐 Open Main Dashboard</button>
+        </div>
+        
+        <div id="status" style="margin: 15px 0; padding: 10px; border-radius: 5px; font-weight: bold;"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>📊 Results</h2>
+        <div id="result-summary"></div>
+        
+        <table id="results-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Blood Group</th>
+                    <th>Phone</th>
+                    <th>✅ Should Show?</th>
+                </tr>
+            </thead>
+            <tbody id="results-body">
+                <tr><td colspan="6" style="text-align: center;">Click "Apply Filter" or "Show All" to load data</td></tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="test-box">
+        <h2>🔧 SQL Query Used</h2>
+        <pre id="sql-display">No query executed yet</pre>
+    </div>
+
+    <script>
+        let allPatients = [];
+        
+        // Load all patients when page loads
+        window.onload = function() {
+            showAll();
+        };
+        
+        async function showAll() {
+            updateStatus('loading', '⏳ Loading all patients...');
+            
+            try {
+                const response = await fetch('php/patients.php?action=list');
+                const data = await response.json();
+                
+                if (data.success && data.patients) {
+                    allPatients = data.patients;
+                    displayResults(allPatients, 'all');
+                    updateSQLDisplay('SELECT * FROM patients ORDER BY name ASC');
+                    updateStatus('success', `✅ Loaded ${allPatients.length} total patients`);
+                } else {
+                    updateStatus('error', '❌ Failed to load patients');
+                }
+            } catch (error) {
+                updateStatus('error', `❌ Error: ${error.message}`);
+            }
+        }
+        
+        async function testFilter() {
+            const selectedGender = document.getElementById('gender-filter').value;
+            
+            if (!selectedGender) {
+                showAll();
+                return;
+            }
+            
+            updateStatus('loading', `⏳ Filtering for ${selectedGender} patients...`);
+            
+            try {
+                const response = await fetch('php/patients.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'filter',
+                        name: '',
+                        gender: selectedGender,
+                        blood_group: '',
+                        phone: '',
+                        email: '',
+                        birth_year: '',
+                        registered_date: ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const filteredPatients = data.data;
+                    const wrongGenderCount = filteredPatients.filter(p => p.gender !== selectedGender).length;
+                    
+                    if (wrongGenderCount > 0) {
+                        updateStatus('error', `❌ FILTER FAILED: Found ${wrongGenderCount} patients with wrong gender!`);
+                    } else {
+                        updateStatus('success', `✅ FILTER SUCCESS: Found ${filteredPatients.length} ${selectedGender} patients only`);
+                    }
+                    
+                    displayResults(filteredPatients, selectedGender);
+                    updateSQLDisplay(data.sql_code || 'No SQL returned');
+                } else {
+                    updateStatus('error', `❌ Filter error: ${data.error}`);
+                }
+            } catch (error) {
+                updateStatus('error', `❌ Network error: ${error.message}`);
+            }
+        }
+        
+        function displayResults(patients, filterType) {
+            const tbody = document.getElementById('results-body');
+            const summary = document.getElementById('result-summary');
+            const selectedGender = document.getElementById('gender-filter').value;
+            
+            // Update summary
+            const maleCount = patients.filter(p => p.gender === 'Male').length;
+            const femaleCount = patients.filter(p => p.gender === 'Female').length;
+            
+            summary.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                    <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; text-align: center;">
+                        <strong>Total Found</strong><br>
+                        <span style="font-size: 24px; color: #1976d2;">${patients.length}</span>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 10px; border-radius: 5px; text-align: center;">
+                        <strong>Male Patients</strong><br>
+                        <span style="font-size: 24px; color: #2e7d2e;">${maleCount}</span>
+                    </div>
+                    <div style="background: #ffebee; padding: 10px; border-radius: 5px; text-align: center;">
+                        <strong>Female Patients</strong><br>
+                        <span style="font-size: 24px; color: #d32f2f;">${femaleCount}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Update table
+            if (patients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">No patients found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = patients.map(patient => {
+                const rowClass = patient.gender === 'Male' ? 'male-row' : 'female-row';
+                const shouldShow = !selectedGender || patient.gender === selectedGender;
+                const shouldShowText = shouldShow ? '✅ YES' : '❌ NO';
+                const shouldShowStyle = shouldShow ? 'color: green; font-weight: bold;' : 'color: red; font-weight: bold;';
+                
+                return `
+                    <tr class="${rowClass}">
+                        <td>${patient.id}</td>
+                        <td>${patient.name}</td>
+                        <td><strong>${patient.gender}</strong></td>
+                        <td>${patient.blood_group || '-'}</td>
+                        <td>${patient.phone || '-'}</td>
+                        <td style="${shouldShowStyle}">${shouldShowText}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function updateStatus(type, message) {
+            const statusDiv = document.getElementById('status');
+            
+            if (type === 'loading') {
+                statusDiv.style.background = '#fff3cd';
+                statusDiv.style.color = '#856404';
+            } else if (type === 'success') {
+                statusDiv.style.background = '#d4edda';
+                statusDiv.style.color = '#155724';
+            } else if (type === 'error') {
+                statusDiv.style.background = '#f8d7da';
+                statusDiv.style.color = '#721c24';
+            }
+            
+            statusDiv.innerHTML = message;
+        }
+        
+        function updateSQLDisplay(sql) {
+            document.getElementById('sql-display').textContent = sql;
+        }
+        
+        function testMainDashboard() {
+            window.open('index.html', '_blank');
+        }
+    </script>
+</body>
+</html>

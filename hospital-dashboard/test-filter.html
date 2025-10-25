@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Filter System Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Patients API (Empty Filters)</h2>
+        <button onclick="testPatientsEmpty()">Test Patients Empty Filter</button>
+        <div id="patients-empty-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Patients API (With Filters)</h2>
+        <button onclick="testPatientsFiltered()">Test Patients With Gender Filter</button>
+        <div id="patients-filtered-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Departments API (Empty Filters)</h2>
+        <button onclick="testDepartmentsEmpty()">Test Departments Empty Filter</button>
+        <div id="departments-empty-result" class="result"></div>
+    </div>
+
+    <script>
+        async function testPatientsEmpty() {
+            try {
+                const response = await fetch('php/patients.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'filter',
+                        name: '',
+                        gender: '',
+                        blood_group: '',
+                        phone: '',
+                        email: '',
+                        birth_year: '',
+                        registered_date: ''
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('patients-empty-result').innerHTML = 
+                    '<strong>SQL:</strong> ' + (data.sql_code || 'No SQL') + 
+                    '<br><strong>Records:</strong> ' + (data.data?.length || 0) +
+                    '<br><strong>Data:</strong> ' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('patients-empty-result').innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        async function testPatientsFiltered() {
+            try {
+                const response = await fetch('php/patients.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'filter',
+                        name: '',
+                        gender: 'Male',
+                        blood_group: '',
+                        phone: '',
+                        email: '',
+                        birth_year: '',
+                        registered_date: ''
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('patients-filtered-result').innerHTML = 
+                    '<strong>SQL:</strong> ' + (data.sql_code || 'No SQL') + 
+                    '<br><strong>Records:</strong> ' + (data.data?.length || 0) +
+                    '<br><strong>Data:</strong> ' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('patients-filtered-result').innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        async function testDepartmentsEmpty() {
+            try {
+                const response = await fetch('php/departments.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'filter',
+                        name: '',
+                        location: '',
+                        contact_number: '',
+                        head_doctor_name: '',
+                        created_date: ''
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('departments-empty-result').innerHTML = 
+                    '<strong>SQL:</strong> ' + (data.sql_code || 'No SQL') + 
+                    '<br><strong>Records:</strong> ' + (data.data?.length || 0) +
+                    '<br><strong>Data:</strong> ' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('departments-empty-result').innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
