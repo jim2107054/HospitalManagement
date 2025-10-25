@@ -8,6 +8,35 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <!-- Session Check Script -->
+    <script>
+        // Check if user is logged in before loading the page
+        (async function checkAuth() {
+            try {
+                const response = await fetch('php/auth.php?action=check_session');
+                const data = await response.json();
+                
+                if (!data.success || !data.logged_in) {
+                    // User is not logged in, redirect to login page
+                    window.location.href = 'login.html';
+                } else {
+                    // Store user info for display
+                    window.currentUser = data.user;
+                    // Update user display after DOM loads
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const userNameSpan = document.querySelector('.user-info span');
+                        if (userNameSpan && window.currentUser) {
+                            userNameSpan.textContent = window.currentUser.full_name || window.currentUser.username;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Session check error:', error);
+                // On error, redirect to login
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
     <div class="dashboard-container">
         <!-- Left Sidebar Navigation -->
         <nav class="sidebar">
@@ -56,6 +85,14 @@
                     </a>
                 </li>
             </ul>
+            
+            <!-- Logout Button at Bottom -->
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
         </nav>
 
         <!-- Main Content Area -->
@@ -450,7 +487,7 @@
 
                     <div class="filters-section">
                         <h3>Filter & Sort Doctors</h3>
-                        <form id="doctors-filter-form" method="GET">
+                        <form id="doctors-filter-form" onsubmit="event.preventDefault(); applyFilters('doctors'); return false;">
                             <div class="filters-grid">
                                 <select id="filter-doctor-name" name="name" class="filter-select">
                                     <option value="">Doctor Names</option>
@@ -571,7 +608,7 @@
 
                     <div class="filters-section">
                         <h3>Filter & Sort Appointments</h3>
-                        <form id="appointments-filter-form" method="GET">
+                        <form id="appointments-filter-form" onsubmit="event.preventDefault(); applyFilters('appointments'); return false;">
                             <div class="filters-grid">
                                 <select id="filter-appointment-patient" name="patient_name" class="filter-select">
                                     <option value="">Patients</option>
@@ -687,7 +724,7 @@
 
                     <div class="filters-section">
                         <h3>Filter & Sort Medical Reports</h3>
-                        <form id="medical-reports-filter-form" method="GET">
+                        <form id="medical-reports-filter-form" onsubmit="event.preventDefault(); applyFilters('medical-reports'); return false;">
                             <div class="filters-grid">
                                 <select id="filter-report-patient" name="patient_name" class="filter-select">
                                     <option value="">Patients</option>

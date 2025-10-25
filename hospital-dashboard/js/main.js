@@ -1092,3 +1092,38 @@ function exportToCSV(type) {
         alert('Dashboard not available');
     }
 }
+
+// Logout function
+async function logout() {
+    if (!confirm('Are you sure you want to logout?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('php/auth.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'logout'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Clear any stored data
+            localStorage.removeItem('currentUser');
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+        } else {
+            alert('Logout failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        // Even if logout fails on server, redirect to login
+        window.location.href = 'login.html';
+    }
+}

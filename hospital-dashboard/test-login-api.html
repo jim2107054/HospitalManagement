@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Login API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            color: #e74c3c;
+            background: #fadbd8;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #e74c3c;
+        }
+        .success {
+            color: #27ae60;
+            background: #d5f4e6;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Login API Test</h1>
+    
+    <div class="test-box">
+        <h2>Test 1: Basic Login Request</h2>
+        <p>Test with username: <strong>admin</strong> / password: <strong>admin123</strong></p>
+        <button onclick="testLogin()">Test Login</button>
+        <div id="result1" style="margin-top: 20px;"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>Test 2: Check Session</h2>
+        <button onclick="testSession()">Check Session</button>
+        <div id="result2" style="margin-top: 20px;"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>Test 3: Direct PHP Test</h2>
+        <p>This will open a diagnostic page to check database setup</p>
+        <button onclick="window.open('test-auth-system.php', '_blank')">Run PHP Diagnostic</button>
+    </div>
+
+    <script>
+        async function testLogin() {
+            const resultDiv = document.getElementById('result1');
+            resultDiv.innerHTML = '<p>⏳ Testing login...</p>';
+            
+            try {
+                console.log('Sending login request...');
+                
+                const response = await fetch('php/auth.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'login',
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const text = await response.text();
+                console.log('Raw response:', text);
+                
+                resultDiv.innerHTML = '<h3>Raw Response:</h3><pre>' + text + '</pre>';
+                
+                try {
+                    const data = JSON.parse(text);
+                    console.log('Parsed JSON:', data);
+                    
+                    if (data.success) {
+                        resultDiv.innerHTML += '<div class="success">✅ Login successful!</div>';
+                        resultDiv.innerHTML += '<h3>User Data:</h3><pre>' + JSON.stringify(data.user, null, 2) + '</pre>';
+                    } else {
+                        resultDiv.innerHTML += '<div class="error">❌ Login failed: ' + data.error + '</div>';
+                    }
+                } catch (e) {
+                    resultDiv.innerHTML += '<div class="error">❌ JSON Parse Error: ' + e.message + '</div>';
+                    resultDiv.innerHTML += '<p>This usually means there is a PHP error. Check the raw response above.</p>';
+                }
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+                resultDiv.innerHTML = '<div class="error">❌ Network Error: ' + error.message + '</div>';
+            }
+        }
+        
+        async function testSession() {
+            const resultDiv = document.getElementById('result2');
+            resultDiv.innerHTML = '<p>⏳ Checking session...</p>';
+            
+            try {
+                const response = await fetch('php/auth.php?action=check_session');
+                const text = await response.text();
+                console.log('Session check response:', text);
+                
+                resultDiv.innerHTML = '<h3>Response:</h3><pre>' + text + '</pre>';
+                
+                try {
+                    const data = JSON.parse(text);
+                    if (data.logged_in) {
+                        resultDiv.innerHTML += '<div class="success">✅ User is logged in</div>';
+                        resultDiv.innerHTML += '<pre>' + JSON.stringify(data.user, null, 2) + '</pre>';
+                    } else {
+                        resultDiv.innerHTML += '<div class="error">❌ No active session</div>';
+                    }
+                } catch (e) {
+                    resultDiv.innerHTML += '<div class="error">❌ Parse Error: ' + e.message + '</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="error">❌ Error: ' + error.message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html>
