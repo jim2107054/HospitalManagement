@@ -261,6 +261,17 @@
                             <p>Registered Today</p>
                         </div>
                     </div>
+                    
+                    <!-- TEMPORARY TEST BUTTON - FOR DEBUGGING -->
+                    <div style="margin: 20px 0; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
+                        <strong>🧪 DEBUG TEST:</strong>
+                        <button onclick="testSQLDisplay()" style="background: #ff6b6b; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+                            Test SQL Display (Click Me!)
+                        </button>
+                        <button onclick="checkSQLStorage()" style="background: #4dabf7; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+                            Check SQL Storage
+                        </button>
+                    </div>
 
                     <div class="filters-section">
                         <h3>Filter & Sort Patients</h3>
@@ -849,7 +860,7 @@
             <div class="modal-body">
                 <p class="sql-description">SQL query used for current filter:</p>
                 <div class="sql-code-container">
-                    <pre id="sql-code-display"><code>No query available</code></pre>
+                    <pre id="sql-popup-code-display">No query available</pre>
                 </div>
                 <div class="sql-actions">
                     <button class="btn btn-secondary" onclick="copySQLCode()">
@@ -871,5 +882,55 @@
     <script src="js/charts.js"></script>
     <script src="js/crud.js"></script>
     <script src="js/main.js"></script>
+    
+    <!-- SQL Popup click-outside handler -->
+    <script>
+        document.addEventListener('click', function(event) {
+            const sqlPopup = document.getElementById('sql-popup');
+            if (event.target === sqlPopup) {
+                closeSQLPopup();
+            }
+        });
+        
+        // TEMPORARY TEST FUNCTIONS - FOR DEBUGGING
+        function testSQLDisplay() {
+            console.log('🧪 TEST: Manual SQL display test');
+            
+            // Manually set SQL in the dashboard object
+            const testSQL = 'SELECT * FROM patients WHERE gender = ? ORDER BY name ASC -- Parameters: ["Male"]';
+            
+            if (window.dashboard) {
+                window.dashboard.lastSQLQueries['patients'] = testSQL;
+                console.log('✓ Manually set SQL for patients:', testSQL);
+                console.log('✓ lastSQLQueries object:', window.dashboard.lastSQLQueries);
+                
+                // Now show it
+                window.dashboard.showSQLCode('patients');
+            } else {
+                alert('ERROR: Dashboard not available!');
+                console.error('window.dashboard is not defined');
+            }
+        }
+        
+        function checkSQLStorage() {
+            console.log('🔍 CHECKING SQL STORAGE:');
+            
+            if (window.dashboard) {
+                console.log('✓ Dashboard exists');
+                console.log('lastSQLQueries:', window.dashboard.lastSQLQueries);
+                console.log('Current page:', window.dashboard.currentPage);
+                
+                const sql = window.dashboard.lastSQLQueries['patients'];
+                if (sql && sql.trim() !== '') {
+                    alert('✓ SQL IS STORED for patients!\n\nSQL: ' + sql.substring(0, 100) + '...');
+                } else {
+                    alert('✗ NO SQL stored for patients\n\nGo to Patients page and apply a filter first!');
+                }
+            } else {
+                alert('ERROR: Dashboard not initialized!');
+                console.error('window.dashboard is undefined');
+            }
+        }
+    </script>
 </body>
 </html>

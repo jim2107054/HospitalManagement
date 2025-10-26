@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Code Display Debug</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #fff;
+        }
+        .test {
+            background: #2d2d2d;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #444;
+            border-radius: 8px;
+        }
+        .success { border-color: #4caf50; }
+        .error { border-color: #f44336; }
+        pre {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 SQL Code Display Debug Tool</h1>
+    
+    <div class="test">
+        <h3>Test 1: Check if elements exist</h3>
+        <button onclick="test1()">Run Test 1</button>
+        <div id="test1-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Test 2: Set SQL code directly (no code tag)</h3>
+        <button onclick="test2()">Run Test 2</button>
+        <div id="test2-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Test 3: Test formatSQL function</h3>
+        <button onclick="test3()">Run Test 3</button>
+        <div id="test3-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Test 4: Simulate actual dashboard flow</h3>
+        <button onclick="test4()">Run Test 4</button>
+        <div id="test4-result"></div>
+    </div>
+    
+    <h2>Console Log:</h2>
+    <div class="log" id="console-log"></div>
+    
+    <!-- Test pre element without code tag -->
+    <div style="display:none;">
+        <pre id="test-pre-1">Initial content</pre>
+        <pre id="test-pre-2"><code>Initial content with code tag</code></pre>
+    </div>
+
+    <script>
+        const consoleLog = document.getElementById('console-log');
+        
+        function log(message) {
+            consoleLog.innerHTML += `<div>${message}</div>`;
+            console.log(message);
+        }
+        
+        function test1() {
+            const result = document.getElementById('test1-result');
+            result.innerHTML = '<h4>Results:</h4>';
+            
+            const pre1 = document.getElementById('test-pre-1');
+            const pre2 = document.getElementById('test-pre-2');
+            
+            log('Test 1: Checking elements...');
+            log(`test-pre-1 exists: ${!!pre1}`);
+            log(`test-pre-2 exists: ${!!pre2}`);
+            
+            if (pre1) {
+                log(`test-pre-1 innerHTML: "${pre1.innerHTML}"`);
+                log(`test-pre-1 textContent: "${pre1.textContent}"`);
+            }
+            
+            if (pre2) {
+                log(`test-pre-2 innerHTML: "${pre2.innerHTML}"`);
+                log(`test-pre-2 textContent: "${pre2.textContent}"`);
+            }
+            
+            result.innerHTML += `<pre>Check console log above</pre>`;
+        }
+        
+        function test2() {
+            const result = document.getElementById('test2-result');
+            const pre1 = document.getElementById('test-pre-1');
+            const pre2 = document.getElementById('test-pre-2');
+            
+            log('Test 2: Setting textContent...');
+            
+            const sqlCode = `SELECT * FROM patients
+WHERE gender = ?
+ORDER BY name ASC
+-- Parameters: ["Male"]`;
+            
+            // Set on pre without code tag
+            if (pre1) {
+                pre1.textContent = sqlCode;
+                log('Set textContent on test-pre-1 (no code tag)');
+                log(`Result innerHTML: "${pre1.innerHTML}"`);
+                log(`Result textContent: "${pre1.textContent}"`);
+            }
+            
+            // Set on pre with code tag
+            if (pre2) {
+                pre2.textContent = sqlCode;
+                log('Set textContent on test-pre-2 (has code tag)');
+                log(`Result innerHTML: "${pre2.innerHTML}"`);
+                log(`Result textContent: "${pre2.textContent}"`);
+            }
+            
+            result.innerHTML = `
+                <h4>test-pre-1 (no code tag):</h4>
+                <pre>${pre1.textContent}</pre>
+                <h4>test-pre-2 (had code tag):</h4>
+                <pre>${pre2.textContent}</pre>
+            `;
+        }
+        
+        function test3() {
+            const result = document.getElementById('test3-result');
+            
+            log('Test 3: Testing formatSQL...');
+            
+            const rawSQL = 'SELECT * FROM patients WHERE gender = ? AND age > 18 ORDER BY name ASC';
+            
+            function formatSQL(sql) {
+                return sql
+                    .replace(/SELECT/gi, 'SELECT')
+                    .replace(/FROM/gi, '\\nFROM')
+                    .replace(/WHERE/gi, '\\nWHERE')
+                    .replace(/AND/gi, '\\n  AND')
+                    .replace(/OR/gi, '\\n  OR')
+                    .replace(/ORDER BY/gi, '\\nORDER BY')
+                    .replace(/GROUP BY/gi, '\\nGROUP BY')
+                    .replace(/HAVING/gi, '\\nHAVING')
+                    .replace(/LIMIT/gi, '\\nLIMIT');
+            }
+            
+            const formatted = formatSQL(rawSQL);
+            
+            log(`Raw SQL: ${rawSQL}`);
+            log(`Formatted SQL: ${formatted}`);
+            
+            result.innerHTML = `
+                <h4>Raw SQL:</h4>
+                <pre>${rawSQL}</pre>
+                <h4>Formatted SQL:</h4>
+                <pre>${formatted}</pre>
+            `;
+        }
+        
+        function test4() {
+            const result = document.getElementById('test4-result');
+            
+            log('Test 4: Simulating dashboard flow...');
+            
+            // Simulate SQL storage
+            const lastSQLQueries = {
+                'patients': 'SELECT * FROM patients WHERE gender = ? ORDER BY name ASC -- Parameters: ["Male"]'
+            };
+            
+            log('Stored SQL queries:');
+            log(JSON.stringify(lastSQLQueries, null, 2));
+            
+            // Simulate showSQLCode
+            const module = 'patients';
+            const sqlQuery = lastSQLQueries[module];
+            
+            log(`Retrieved SQL for ${module}: ${sqlQuery}`);
+            
+            if (sqlQuery) {
+                // Format SQL
+                function formatSQL(sql) {
+                    return sql
+                        .replace(/SELECT/gi, 'SELECT')
+                        .replace(/FROM/gi, '\\nFROM')
+                        .replace(/WHERE/gi, '\\nWHERE')
+                        .replace(/AND/gi, '\\n  AND')
+                        .replace(/ORDER BY/gi, '\\nORDER BY');
+                }
+                
+                const formatted = formatSQL(sqlQuery);
+                log(`Formatted SQL: ${formatted}`);
+                
+                result.innerHTML = `
+                    <h4>✅ Success! SQL would be displayed as:</h4>
+                    <pre>${formatted}</pre>
+                `;
+            } else {
+                result.innerHTML = `<h4>❌ No SQL query found</h4>`;
+            }
+        }
+        
+        log('Debug tool loaded. Click buttons to run tests.');
+    </script>
+</body>
+</html>

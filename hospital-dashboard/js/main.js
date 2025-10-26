@@ -233,6 +233,12 @@ class HospitalDashboard {
                 // Update patients table (data is already filtered and sorted by PHP)
                 this.updatePatientsTable(data.patients);
                 
+                // Store SQL code for display
+                if (data.sql_code) {
+                    this.lastSQLQueries['patients'] = data.sql_code;
+                    console.log('Stored SQL for patients:', data.sql_code);
+                }
+                
                 // Load filter options
                 await this.loadFilterOptions('patients');
             } else {
@@ -263,6 +269,12 @@ class HospitalDashboard {
                 // Update departments table (data is already sorted by PHP)
                 this.updateTable('departments', data.data);
                 
+                // Store SQL code for display
+                if (data.sql_code) {
+                    this.lastSQLQueries['departments'] = data.sql_code;
+                    console.log('Stored SQL for departments:', data.sql_code);
+                }
+                
                 // Load filter options
                 await this.loadFilterOptions('departments');
             }
@@ -285,6 +297,12 @@ class HospitalDashboard {
 
                 // Update doctors table (data is already sorted by PHP)
                 this.updateTable('doctors', data.data);
+                
+                // Store SQL code for display
+                if (data.sql_code) {
+                    this.lastSQLQueries['doctors'] = data.sql_code;
+                    console.log('Stored SQL for doctors:', data.sql_code);
+                }
                 
                 // Load filter options
                 await this.loadFilterOptions('doctors');
@@ -310,6 +328,12 @@ class HospitalDashboard {
                 // Update appointments table (data is already sorted by PHP)
                 this.updateTable('appointments', data.data);
                 
+                // Store SQL code for display
+                if (data.sql_code) {
+                    this.lastSQLQueries['appointments'] = data.sql_code;
+                    console.log('Stored SQL for appointments:', data.sql_code);
+                }
+                
                 // Load filter options
                 await this.loadFilterOptions('appointments');
             }
@@ -333,6 +357,12 @@ class HospitalDashboard {
 
                 // Update medical reports table (data is already sorted by PHP)
                 this.updateTable('medical-reports', data.data);
+                
+                // Store SQL code for display
+                if (data.sql_code) {
+                    this.lastSQLQueries['medical-reports'] = data.sql_code;
+                    console.log('Stored SQL for medical-reports:', data.sql_code);
+                }
                 
                 // Load filter options
                 await this.loadFilterOptions('medical-reports');
@@ -581,7 +611,8 @@ class HospitalDashboard {
             if (data.success) {
                 // Update table with PHP-filtered and sorted data
                 if (type === 'patients') {
-                    this.updatePatientsTable(data.data);
+                    // Patients API returns data in 'data' field for filter action
+                    this.updatePatientsTable(data.data || data.patients);
                 } else {
                     this.updateTable(type, data.data);
                 }
@@ -940,13 +971,44 @@ class HospitalDashboard {
 
     // SQL Code Display Methods
     showSQLCode(module) {
+        console.log('=== showSQLCode DEBUG ===');
+        console.log('1. Module requested:', module);
+        console.log('2. this.lastSQLQueries object:', this.lastSQLQueries);
+        console.log('3. All keys in lastSQLQueries:', Object.keys(this.lastSQLQueries));
+        console.log('4. SQL for this module:', this.lastSQLQueries[module]);
+        
         const sqlQuery = this.lastSQLQueries[module];
-        if (sqlQuery) {
-            document.getElementById('sql-code-display').textContent = this.formatSQL(sqlQuery);
-            document.getElementById('sql-popup').style.display = 'flex';
+        
+        if (sqlQuery && sqlQuery.trim() !== '') {
+            console.log('5. SQL query found, length:', sqlQuery.length);
+            
+            const sqlDisplay = document.getElementById('sql-popup-code-display');
+            console.log('6. sql-popup-code-display element:', sqlDisplay);
+            
+            if (sqlDisplay) {
+                const formattedSQL = this.formatSQL(sqlQuery);
+                console.log('7. Formatted SQL:', formattedSQL);
+                
+                sqlDisplay.textContent = formattedSQL;
+                console.log('8. textContent set, current value:', sqlDisplay.textContent);
+            } else {
+                console.error('ERROR: sql-popup-code-display element not found!');
+            }
+            
+            const sqlPopup = document.getElementById('sql-popup');
+            if (sqlPopup) {
+                sqlPopup.style.display = 'flex';
+                console.log('9. SQL popup displayed');
+            } else {
+                console.error('ERROR: sql-popup element not found!');
+            }
         } else {
-            alert('No SQL query available. Please apply filters first.');
+            console.warn('WARNING: No SQL query available for module:', module);
+            console.warn('lastSQLQueries state:', JSON.stringify(this.lastSQLQueries, null, 2));
+            alert(`No SQL query available for ${module}.\n\nPlease:\n1. Load the page data first, OR\n2. Apply some filters\n\nCheck browser console for details.`);
         }
+        
+        console.log('=== showSQLCode END ===');
     }
 
     formatSQL(sql) {
@@ -967,7 +1029,7 @@ class HospitalDashboard {
     }
 
     copySQLCode() {
-        const sqlCode = document.getElementById('sql-code-display').textContent;
+        const sqlCode = document.getElementById('sql-popup-code-display').textContent;
         if (navigator.clipboard) {
             navigator.clipboard.writeText(sqlCode).then(() => {
                 alert('SQL code copied to clipboard!');

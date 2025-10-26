@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Display Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>🧪 SQL Display Direct Test</h1>
+        <p>This test directly manipulates the DOM to see if SQL can be displayed.</p>
+        
+        <button onclick="testDirectSet()">Test 1: Direct Set textContent</button>
+        <button onclick="testInnerHTML()">Test 2: Set innerHTML</button>
+        <button onclick="testInnerText()">Test 3: Set innerText</button>
+        <button onclick="checkElement()">Check Element State</button>
+        
+        <div id="status"></div>
+        
+        <h3>Test SQL Display Area:</h3>
+        <div style="background: #2d3748; border-radius: 8px; padding: 0;">
+            <pre id="sql-code-display">No query available</pre>
+        </div>
+    </div>
+
+    <script>
+        const testSQL = `SELECT * FROM patients 
+WHERE gender = ? 
+ORDER BY name ASC 
+-- Parameters: ["Male"]`;
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+        }
+
+        function testDirectSet() {
+            const element = document.getElementById('sql-code-display');
+            console.log('Element before:', element);
+            console.log('textContent before:', element.textContent);
+            
+            element.textContent = testSQL;
+            
+            console.log('textContent after:', element.textContent);
+            console.log('innerHTML after:', element.innerHTML);
+            
+            showStatus('✓ Test 1 complete - Check the SQL display area above', 'success');
+        }
+
+        function testInnerHTML() {
+            const element = document.getElementById('sql-code-display');
+            element.innerHTML = testSQL;
+            showStatus('✓ Test 2 complete - Used innerHTML', 'success');
+        }
+
+        function testInnerText() {
+            const element = document.getElementById('sql-code-display');
+            element.innerText = testSQL;
+            showStatus('✓ Test 3 complete - Used innerText', 'success');
+        }
+
+        function checkElement() {
+            const element = document.getElementById('sql-code-display');
+            const info = `
+Element found: ${!!element}
+Tag: ${element?.tagName}
+ID: ${element?.id}
+textContent: "${element?.textContent}"
+innerHTML: "${element?.innerHTML}"
+innerText: "${element?.innerText}"
+            `.trim();
+            
+            console.log('Element inspection:', element);
+            console.log(info);
+            
+            showStatus(info, 'info');
+        }
+        
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            showStatus('Page loaded. Click a button to test SQL display.', 'info');
+            checkElement();
+        });
+    </script>
+</body>
+</html>
